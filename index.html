@@ -49,9 +49,9 @@
 
     <!-- Script Integration -->
     <script>
-        // الـ Key متاعك الي حطيتو انت
+        // المفتاح الخاص بك مدرج هنا
         const GEMINI_API_KEY = "AQ.Ab8RN6LakPTAa7cjj05FjXkz6yGPPsjFiMxyoLRkyEx_Ob5GGA"; 
-        const MODEL_NAME = "gemini-1.5-flash";
+        const MODEL_NAME = "gemini-1.5-flash"; // أسرع نموذج للرد الفوري
 
         const form = document.getElementById('chat-form');
         const input = document.getElementById('user-input');
@@ -62,9 +62,11 @@
             const text = input.value.trim();
             if (!text) return;
 
+            // Add User Message
             appendMessage(text, 'user');
             input.value = '';
 
+            // Loading state
             const loadingId = appendMessage('جاري التفكير...', 'bot', true);
 
             try {
@@ -83,7 +85,7 @@
                     const reply = data.candidates[0].content.parts[0].text;
                     appendMessage(reply, 'bot');
                 } else if (data.error) {
-                    appendMessage('خطأ من الـ API: ' + (data.error.message || 'مشكل في المفتاح'), 'bot');
+                    appendMessage('خطأ من الخادم: ' + (data.error.message || 'تأكد من صلاحيات المفتاح'), 'bot');
                 } else {
                     appendMessage('عذراً، حدث خطأ في الاتصال بالنموذج.', 'bot');
                 }
