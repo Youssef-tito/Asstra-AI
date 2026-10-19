@@ -42,30 +42,44 @@ module.exports = async function handler(req, res) {
 
     messages.push({ role: "user", content: prompt });
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages,
-        temperature: 0.7,
-        max_tokens: 2048
-      })
-    });
+    // Models to try in order
+    const modelsToTry = ["llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"];
+    let lastError = null;
 
-    const data = await response.json();
+    for (const model of modelsToTry) {
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 2048
+          })
+        });
 
-    if (response.ok) {
-      const reply = data.choices?.[0]?.message?.content;
-      return res.status(200).json({ reply, model: "Llama 3.3 (Groq)" });
-    } else {
-      return res.status(response.status).json({
-        error: data.error?.message || "Erreur serveur Groq."
-      });
+        const data = await response.json();
+
+        if (response.ok) {
+          const reply = data.choices?.[0]?.message?.content;
+          if (reply) {
+            return res.status(200).json({ reply, model });
+          }
+        } else {
+          lastError = data.error?.message || response.statusText;
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
     }
+
+    return res.status(500).json({
+      error: "Erreur Groq: " + lastError
+    });
 
   } catch (error) {
     return res.status(500).json({ error: "Erreur serveur: " + error.message });
