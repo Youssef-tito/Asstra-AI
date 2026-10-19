@@ -61,8 +61,8 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // قائمة الموديلات المتاحة بالترتيب للحماية من 503 (High Demand)
-    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+    // Models el-Mawjoudin w el-M3tamdin tawwa f-Google
+    const modelsToTry = ["gemini-3.8-flash", "gemini-2.5-flash"];
     let lastErrorMsg = "";
 
     for (const model of modelsToTry) {
