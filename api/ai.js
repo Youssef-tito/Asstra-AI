@@ -54,8 +54,8 @@ module.exports = async function handler(req, res) {
     }
     contents.push({ role: "user", parts: currentParts });
 
-    // تجربة الموديلات باستخدام v1beta
-    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash"];
+    // تجربة الموديلات المعتمدة رسمياً
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
     let lastError = null;
 
     for (const key of apiKeys) {
