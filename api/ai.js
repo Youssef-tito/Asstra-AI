@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(500).json({
-        error: "GEMINI_API_KEY introuvable dans les variables d'environnement Vercel."
+        error: "Configuration serveur manquante : GEMINI_API_KEY introuvable sur Vercel."
       });
     }
 
@@ -66,31 +66,22 @@ module.exports = async function handler(req, res) {
     const model = "gemini-3.8-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
-    // مهلة 9 ثوانٍ لتفادي تجاوز حد Vercel Serverless (10s)
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 9000);
-
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-          },
-          contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-        })
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
+        },
+        contents,
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
+      console.error("Gemini Error Detail:", data);
       const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
       return res.status(response.status).json({
         error: `Erreur Google (${response.status}): ${googleErrorMsg}`
@@ -110,9 +101,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ reply, model });
 
   } catch (error) {
-    if (error.name === "AbortError") {
-      return res.status(504).json({ error: "Le délai de réponse a expiré (Timeout). Vérifiez votre clé API ou réessayez." });
-    }
     return res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 };
