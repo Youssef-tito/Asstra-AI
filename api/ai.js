@@ -63,7 +63,6 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // الموديل الموصى به رسمياً من Google
     const model = "gemini-3.8-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
@@ -88,7 +87,12 @@ module.exports = async function handler(req, res) {
       clearTimeout(timeout);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      return res.status(500).json({ error: "Erreur de lecture de la réponse Google Gemini." });
+    }
 
     if (!response.ok) {
       console.error("Gemini Error Detail:", data);
@@ -111,4 +115,9 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ reply, model });
 
   } catch (error) {
-    if (error.
+    if (error.name === "AbortError") {
+      return res.status(504).json({ error: "Le délai de réponse a expiré." });
+    }
+    return res.status(500).json({ error: "Erreur serveur: " + error.message });
+  }
+};
