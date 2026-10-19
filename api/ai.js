@@ -61,52 +61,56 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // الموديل الرسمي السريع والمفعل
-    const model = "gemini-3.8-flash";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+    // استراتيجية الـ Fallback الشاملة للموديلات لتجاوز أخطاء 503 وضغط السيرفر
+    const modelsToTry = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+    let lastErrorMsg = "";
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000);
+    for (const model of modelsToTry) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 55000);
 
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et sympathique. Utilise uniquement 1 ou 2 emojis pertinents par réponse pour garder un ton dynamique mais professionnel et propre. Évite l'excès d'emojis." }]
-          },
-          contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
-        })
-      });
-    } finally {
-      clearTimeout(timeout);
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et sympathique. Utilise uniquement 1 ou 2 emojis pertinents par réponse pour garder un ton dynamique mais professionnel et propre. Évite l'excès d'emojis." }]
+            },
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+          })
+        });
+
+        clearTimeout(timeout);
+        const data = await response.json();
+
+        if (response.ok) {
+          const reply = data.candidates?.[0]?.content?.parts
+            ?.filter(part => typeof part.text === "string")
+            .map(part => part.text)
+            .join("\n")
+            .trim();
+
+          if (reply) {
+            return res.status(200).json({ reply, model });
+          }
+        }
+
+        lastErrorMsg = data.error?.message || `Erreur ${response.status}`;
+        console.warn(`Model ${model} failed (${response.status}), trying next model...`);
+
+      } catch (err) {
+        clearTimeout(timeout);
+        lastErrorMsg = err.message;
+      }
     }
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Gemini Error Detail:", data);
-      const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
-      return res.status(response.status).json({
-        error: `Gemini (${response.status}): ${googleErrorMsg}`
-      });
-    }
-
-    const reply = data.candidates?.[0]?.content?.parts
-      ?.filter(part => typeof part.text === "string")
-      .map(part => part.text)
-      .join("\n")
-      .trim();
-
-    if (!reply) {
-      return res.status(502).json({ error: "Gemini n'a pas généré de réponse." });
-    }
-
-    return res.status(200).json({ reply, model });
+    return res.status(503).json({
+      error: `⚠️ **Service temporairement indisponible :** السيرفرات مشغولة حالياً، يرجى المحاولة بعد قليل. (${lastErrorMsg})`
+    });
 
   } catch (error) {
     if (error.name === "AbortError") {
