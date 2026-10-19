@@ -53,15 +53,15 @@ module.exports = async function handler(req, res) {
     }
     contents.push({ role: "user", parts: currentParts });
 
-    // الموديل الوحيد المعتمد رسمياً من جوجل
     const model = "gemini-3.8-flash";
     let lastError = null;
 
+    // Loop 3la كل API Keys
     for (const key of apiKeys) {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-      // محاولة الطلب مرتين لكل مفتاح لتفادي الـ High Demand المؤقت (503)
-      for (let attempt = 0; attempt < 2; attempt++) {
+      // Retry 3 مرات ki ykon fma pressure (503)
+      for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           const response = await fetch(apiUrl, {
             method: "POST",
@@ -89,11 +89,13 @@ module.exports = async function handler(req, res) {
             }
           } else {
             lastError = data.error?.message || `Status ${response.status}`;
-            // إذا كان الخطأ ضغط سيرفرات (503)، ننتظر نصف ثانية ونحاول مجدداً
+
+            // Ki ykon 503 (Overloaded) nestanew chwaya (1sec, 2sec) w na3mlou retry
             if (response.status === 503) {
-              await new Promise(r => setTimeout(r, 500));
+              await new Promise(r => setTimeout(r, attempt * 1000));
             } else {
-              break; // إذا كان الخطأ 429 ننتقل للمفتاح التالي فوراً
+              // Ki ykon 429 (Quota), nemchiw toul lil-Key el ba3dou
+              break;
             }
           }
         } catch (err) {
@@ -103,7 +105,7 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(503).json({
-      error: `Le serveur Google est temporairement surchargé : ${lastError}`
+      error: `Erreur serveur Google : ${lastError}`
     });
 
   } catch (error) {
