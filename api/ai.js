@@ -14,54 +14,96 @@ module.exports = async function handler(req, res) {
 
   try {
     const rawApiKeys = process.env.GEMINI_API_KEY || "";
-    // تفكيك المفاتيح
     const apiKeys = rawApiKeys.split(",").map(k => k.trim()).filter(Boolean);
 
     if (apiKeys.length === 0) {
       return res.status(500).json({
-        error: "Aucune clé API trouvée. Vérifiez GEMINI_API_KEY sur Vercel."
+        error: "Aucune clé API trouvée sur Vercel."
       });
     }
 
     const body = req.body || {};
-    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "hi";
+    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+    const image = typeof body.image === "string" ? body.image : null;
+    const incomingContents = Array.isArray(body.contents) ? body.contents : [];
 
+    if (!prompt && !image) {
+      return res.status(400).json({ error: "Veuillez envoyer un message ou une image." });
+    }
+
+    const contents = [];
+    for (const item of incomingContents.slice(-10)) {
+      if (!item || !["user", "model"].includes(item.role) || !Array.isArray(item.parts)) continue;
+      const safeParts = [];
+      for (const part of item.parts.slice(0, 2)) {
+        if (part && typeof part.text === "string" && part.text.length <= 10000) {
+          safeParts.push({ text: part.text });
+        }
+      }
+      if (safeParts.length > 0) contents.push({ role: item.role, parts: safeParts });
+    }
+
+    const currentParts = [];
+    if (prompt) currentParts.push({ text: prompt });
+    if (image) {
+      const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\r\n]+)$/);
+      if (match) {
+        currentParts.push({ inline_data: { mime_type: match[1], data: match[2].replace(/\s/g, "") } });
+      }
+    }
+    contents.push({ role: "user", parts: currentParts });
+
+    // الموديل الوحيد المعتمد رسمياً من جوجل
     const model = "gemini-3.8-flash";
-    const errors = [];
+    let lastError = null;
 
-    // تجربة كل المفاتيح المسجلة وحفظ أسباب الفشل
-    for (let i = 0; i < apiKeys.length; i++) {
-      const key = apiKeys[i];
-      const maskedKey = key.slice(0, 6) + "..." + key.slice(-4);
+    for (const key of apiKeys) {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }]
-          })
-        });
+      // محاولة الطلب مرتين لكل مفتاح لتفادي الـ High Demand المؤقت (503)
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
+              },
+              contents,
+              generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+            })
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (response.ok) {
-          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply) {
-            return res.status(200).json({ reply, model });
+          if (response.ok) {
+            const reply = data.candidates?.[0]?.content?.parts
+              ?.filter(part => typeof part.text === "string")
+              .map(part => part.text)
+              .join("\n")
+              .trim();
+
+            if (reply) {
+              return res.status(200).json({ reply, model });
+            }
+          } else {
+            lastError = data.error?.message || `Status ${response.status}`;
+            // إذا كان الخطأ ضغط سيرفرات (503)، ننتظر نصف ثانية ونحاول مجدداً
+            if (response.status === 503) {
+              await new Promise(r => setTimeout(r, 500));
+            } else {
+              break; // إذا كان الخطأ 429 ننتقل للمفتاح التالي فوراً
+            }
           }
-        } else {
-          errors.push(`Clé #${i + 1} (${maskedKey}): Status ${response.status} - ${data.error?.message || "Erreur inconnue"}`);
+        } catch (err) {
+          lastError = err.message;
         }
-      } catch (err) {
-        errors.push(`Clé #${i + 1} (${maskedKey}): ${err.message}`);
       }
     }
 
-    // إرجاع الأخطاء التفصيلية لكل المفاتيح
-    return res.status(429).json({
-      error: `Nombre de clés testées : ${apiKeys.length}.\nDétails :\n` + errors.join("\n")
+    return res.status(503).json({
+      error: `Le serveur Google est temporairement surchargé : ${lastError}`
     });
 
   } catch (error) {
