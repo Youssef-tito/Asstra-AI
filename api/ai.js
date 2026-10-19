@@ -9,56 +9,30 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST, OPTIONS");
     return res.status(405).json({ error: "Méthode non autorisée." });
   }
 
   try {
     const rawApiKeys = process.env.GEMINI_API_KEY || "";
+    // تفكيك المفاتيح
     const apiKeys = rawApiKeys.split(",").map(k => k.trim()).filter(Boolean);
 
     if (apiKeys.length === 0) {
       return res.status(500).json({
-        error: "Configuration serveur manquante : GEMINI_API_KEY introuvable sur Vercel."
+        error: "Aucune clé API trouvée. Vérifiez GEMINI_API_KEY sur Vercel."
       });
     }
 
     const body = req.body || {};
-    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-    const image = typeof body.image === "string" ? body.image : null;
-    const incomingContents = Array.isArray(body.contents) ? body.contents : [];
+    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "hi";
 
-    if (!prompt && !image) {
-      return res.status(400).json({ error: "Veuillez envoyer un message ou une image." });
-    }
-
-    const contents = [];
-    for (const item of incomingContents.slice(-10)) {
-      if (!item || !["user", "model"].includes(item.role) || !Array.isArray(item.parts)) continue;
-      const safeParts = [];
-      for (const part of item.parts.slice(0, 2)) {
-        if (part && typeof part.text === "string" && part.text.length <= 10000) {
-          safeParts.push({ text: part.text });
-        }
-      }
-      if (safeParts.length > 0) contents.push({ role: item.role, parts: safeParts });
-    }
-
-    const currentParts = [];
-    if (prompt) currentParts.push({ text: prompt });
-    if (image) {
-      const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\r\n]+)$/);
-      if (match) {
-        currentParts.push({ inline_data: { mime_type: match[1], data: match[2].replace(/\s/g, "") } });
-      }
-    }
-    contents.push({ role: "user", parts: currentParts });
-
-    // الموديل الرسمي الجديد والمعتمد من Google
     const model = "gemini-3.8-flash";
-    let lastError = null;
+    const errors = [];
 
-    for (const key of apiKeys) {
+    // تجربة كل المفاتيح المسجلة وحفظ أسباب الفشل
+    for (let i = 0; i < apiKeys.length; i++) {
+      const key = apiKeys[i];
+      const maskedKey = key.slice(0, 6) + "..." + key.slice(-4);
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
       try {
@@ -66,36 +40,28 @@ module.exports = async function handler(req, res) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-            },
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
           })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          const reply = data.candidates?.[0]?.content?.parts
-            ?.filter(part => typeof part.text === "string")
-            .map(part => part.text)
-            .join("\n")
-            .trim();
-
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (reply) {
             return res.status(200).json({ reply, model });
           }
         } else {
-          lastError = data.error?.message || `Erreur (${response.status})`;
+          errors.push(`Clé #${i + 1} (${maskedKey}): Status ${response.status} - ${data.error?.message || "Erreur inconnue"}`);
         }
       } catch (err) {
-        lastError = err.message;
+        errors.push(`Clé #${i + 1} (${maskedKey}): ${err.message}`);
       }
     }
 
+    // إرجاع الأخطاء التفصيلية لكل المفاتيح
     return res.status(429).json({
-      error: `Quota atteint ou serveur occupé. Veuillez réassayer dans quelques instants.`
+      error: `Nombre de clés testées : ${apiKeys.length}.\nDétails :\n` + errors.join("\n")
     });
 
   } catch (error) {
