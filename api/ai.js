@@ -54,40 +54,42 @@ module.exports = async function handler(req, res) {
     }
     contents.push({ role: "user", parts: currentParts });
 
-    // الاعتماد المباشر على gemini-1.5-flash الرائع والمستقر
-    const model = "gemini-1.5-flash";
+    // تجربة الموديلات باستخدام v1beta
+    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash"];
     let lastError = null;
 
     for (const key of apiKeys) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
+      for (const model of modelsToTry) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-          })
-        });
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents,
+              generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+            })
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (response.ok) {
-          const reply = data.candidates?.[0]?.content?.parts
-            ?.filter(part => typeof part.text === "string")
-            .map(part => part.text)
-            .join("\n")
-            .trim();
+          if (response.ok) {
+            const reply = data.candidates?.[0]?.content?.parts
+              ?.filter(part => typeof part.text === "string")
+              .map(part => part.text)
+              .join("\n")
+              .trim();
 
-          if (reply) {
-            return res.status(200).json({ reply, model });
+            if (reply) {
+              return res.status(200).json({ reply, model });
+            }
+          } else {
+            lastError = data.error?.message || `Erreur (${response.status})`;
           }
-        } else {
-          lastError = data.error?.message || `Erreur (${response.status})`;
+        } catch (err) {
+          lastError = err.message;
         }
-      } catch (err) {
-        lastError = err.message;
       }
     }
 
