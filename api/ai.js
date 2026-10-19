@@ -14,9 +14,11 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const rawApiKeys = process.env.GEMINI_API_KEY || "";
+    // تفكيك المفاتيح المفصولة بفاصلة
+    const apiKeys = rawApiKeys.split(",").map(k => k.trim()).filter(Boolean);
 
-    if (!apiKey) {
+    if (apiKeys.length === 0) {
       return res.status(500).json({
         error: "Configuration serveur manquante : GEMINI_API_KEY introuvable sur Vercel."
       });
@@ -64,41 +66,49 @@ module.exports = async function handler(req, res) {
     contents.push({ role: "user", parts: currentParts });
 
     const model = "gemini-3.8-flash";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+    let lastError = null;
 
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-        },
-        contents,
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-      })
+    // التجربة على كل مفتاح متاح في القائمة متى ما ظهر خطأ Quota/429
+    for (const key of apiKeys) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
+            },
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const reply = data.candidates?.[0]?.content?.parts
+            ?.filter(part => typeof part.text === "string")
+            .map(part => part.text)
+            .join("\n")
+            .trim();
+
+          if (reply) {
+            return res.status(200).json({ reply, model });
+          }
+        } else {
+          lastError = data.error?.message || `Erreur (${response.status})`;
+          console.warn(`Key failed (${response.status}), trying next key...`);
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
+    }
+
+    return res.status(429).json({
+      error: `Tous les clés API ont atteint la limite : ${lastError}`
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Gemini Error Detail:", data);
-      const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
-      return res.status(response.status).json({
-        error: `Erreur Google (${response.status}): ${googleErrorMsg}`
-      });
-    }
-
-    const reply = data.candidates?.[0]?.content?.parts
-      ?.filter(part => typeof part.text === "string")
-      .map(part => part.text)
-      .join("\n")
-      .trim();
-
-    if (!reply) {
-      return res.status(502).json({ error: "L'assistant n'a pas renvoyé de réponse." });
-    }
-
-    return res.status(200).json({ reply, model });
 
   } catch (error) {
     return res.status(500).json({ error: "Erreur serveur: " + error.message });
