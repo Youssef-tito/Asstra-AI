@@ -42,8 +42,8 @@ module.exports = async function handler(req, res) {
 
     messages.push({ role: "user", content: prompt });
 
-    // Models to try in order
-    const modelsToTry = ["llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"];
+    // Active models in Groq right now
+    const modelsToTry = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     let lastError = null;
 
     for (const model of modelsToTry) {
