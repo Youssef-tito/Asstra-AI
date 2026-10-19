@@ -1,5 +1,7 @@
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
 
   if (req.method === "OPTIONS") {
     res.setHeader("Allow", "POST, OPTIONS");
@@ -41,7 +43,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (!prompt && !imagePart) {
-      return res.status(400).json({ error: "Veuillez envoyer un message une image." });
+      return res.status(400).json({ error: "Veuillez envoyer un message ou une image." });
     }
 
     const contents = [];
@@ -61,8 +63,8 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // الاعتماد على gemini-3.8-flash حصراً
-    const model = "gemini-3.8-flash";
+    // استبدال الموديل بموديل فلاش القياسي الأكثر استقراراً للطلبات المجانية
+    const model = "gemini-1.5-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
     const controller = new AbortController();
@@ -92,7 +94,7 @@ module.exports = async function handler(req, res) {
       console.error("Gemini Error Detail:", data);
       const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
       return res.status(response.status).json({
-        error: `⚠️ **Erreur Gemini :** ${googleErrorMsg}`
+        error: `Erreur Gemini (${response.status}): ${googleErrorMsg}`
       });
     }
 
