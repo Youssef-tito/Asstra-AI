@@ -63,8 +63,8 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // استخدام الموديل المعتمد والمتاح حالياً
-    const model = "gemini-2.5-flash";
+    // الموديل الموصى به رسمياً من Google
+    const model = "gemini-3.8-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
     const controller = new AbortController();
@@ -81,7 +81,7 @@ module.exports = async function handler(req, res) {
             parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et sympathique. Utilise uniquement 1 ou 2 emojis pertinents par réponse pour garder un ton dynamique mais professionnel et propre. Évite l'excès d'emojis." }]
           },
           contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
         })
       });
     } finally {
@@ -111,9 +111,4 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ reply, model });
 
   } catch (error) {
-    if (error.name === "AbortError") {
-      return res.status(504).json({ error: "Le délai de réponse a expiré." });
-    }
-    return res.status(500).json({ error: "Erreur serveur: " + error.message });
-  }
-};
+    if (error.
