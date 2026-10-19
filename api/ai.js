@@ -15,7 +15,6 @@ module.exports = async function handler(req, res) {
 
   try {
     const rawApiKeys = process.env.GEMINI_API_KEY || "";
-    // تفكيك المفاتيح المفصولة بفاصلة
     const apiKeys = rawApiKeys.split(",").map(k => k.trim()).filter(Boolean);
 
     if (apiKeys.length === 0) {
@@ -65,49 +64,50 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    const model = "gemini-3.8-flash";
+    // يجرب 3.8 وإذا أرجع 429 ينتقل فوراً لـ 1.5-flash المفتوح مجاناً
+    const modelsToTry = ["gemini-3.8-flash", "gemini-1.5-flash"];
     let lastError = null;
 
-    // التجربة على كل مفتاح متاح في القائمة متى ما ظهر خطأ Quota/429
     for (const key of apiKeys) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      for (const model of modelsToTry) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-            },
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-          })
-        });
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
+              },
+              contents,
+              generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+            })
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (response.ok) {
-          const reply = data.candidates?.[0]?.content?.parts
-            ?.filter(part => typeof part.text === "string")
-            .map(part => part.text)
-            .join("\n")
-            .trim();
+          if (response.ok) {
+            const reply = data.candidates?.[0]?.content?.parts
+              ?.filter(part => typeof part.text === "string")
+              .map(part => part.text)
+              .join("\n")
+              .trim();
 
-          if (reply) {
-            return res.status(200).json({ reply, model });
+            if (reply) {
+              return res.status(200).json({ reply, model });
+            }
+          } else {
+            lastError = data.error?.message || `Erreur (${response.status})`;
           }
-        } else {
-          lastError = data.error?.message || `Erreur (${response.status})`;
-          console.warn(`Key failed (${response.status}), trying next key...`);
+        } catch (err) {
+          lastError = err.message;
         }
-      } catch (err) {
-        lastError = err.message;
       }
     }
 
     return res.status(429).json({
-      error: `Tous les clés API ont atteint la limite : ${lastError}`
+      error: `Service temporairement saturé : ${lastError}`
     });
 
   } catch (error) {
