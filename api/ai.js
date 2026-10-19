@@ -61,8 +61,8 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // استراتيجية الـ Fallback الشاملة للموديلات لتجاوز أخطاء 503 وضغط السيرفر
-    const modelsToTry = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+    // الاعتماد حصراً على الموديلات الحديثة المتاحة
+    const modelsToTry = ["gemini-2.5-flash", "gemini-3.8-flash"];
     let lastErrorMsg = "";
 
     for (const model of modelsToTry) {
@@ -109,7 +109,7 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(503).json({
-      error: `⚠️ **Service temporairement indisponible :** السيرفرات مشغولة حالياً، يرجى المحاولة بعد قليل. (${lastErrorMsg})`
+      error: `⚠️ **Service temporairement indisponible :** (${lastErrorMsg})`
     });
 
   } catch (error) {
