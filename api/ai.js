@@ -28,22 +28,7 @@ module.exports = async function handler(req, res) {
     const image = typeof body.image === "string" ? body.image : null;
     const incomingContents = Array.isArray(body.contents) ? body.contents : [];
 
-    if (prompt.length > 20000) {
-      return res.status(400).json({ error: "Le message est trop long." });
-    }
-
-    let imagePart = null;
-    if (image) {
-      const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\r\n]+)$/);
-      if (!match) {
-        return res.status(400).json({ error: "Format d'image invalide." });
-      }
-      const mimeType = match[1];
-      const base64 = match[2].replace(/\s/g, "");
-      imagePart = { inline_data: { mime_type: mimeType, data: base64 } };
-    }
-
-    if (!prompt && !imagePart) {
+    if (!prompt && !image) {
       return res.status(400).json({ error: "Veuillez envoyer un message ou une image." });
     }
 
@@ -61,53 +46,53 @@ module.exports = async function handler(req, res) {
 
     const currentParts = [];
     if (prompt) currentParts.push({ text: prompt });
-    if (imagePart) currentParts.push(imagePart);
+    if (image) {
+      const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\r\n]+)$/);
+      if (match) {
+        currentParts.push({ inline_data: { mime_type: match[1], data: match[2].replace(/\s/g, "") } });
+      }
+    }
     contents.push({ role: "user", parts: currentParts });
 
-    // يجرب 3.8 وإذا أرجع 429 ينتقل فوراً لـ 1.5-flash المفتوح مجاناً
-    const modelsToTry = ["gemini-3.8-flash", "gemini-1.5-flash"];
+    // الاعتماد المباشر على gemini-1.5-flash الرائع والمستقر
+    const model = "gemini-1.5-flash";
     let lastError = null;
 
     for (const key of apiKeys) {
-      for (const model of modelsToTry) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
 
-        try {
-          const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-              },
-              contents,
-              generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-            })
-          });
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+          })
+        });
 
-          const data = await response.json();
+        const data = await response.json();
 
-          if (response.ok) {
-            const reply = data.candidates?.[0]?.content?.parts
-              ?.filter(part => typeof part.text === "string")
-              .map(part => part.text)
-              .join("\n")
-              .trim();
+        if (response.ok) {
+          const reply = data.candidates?.[0]?.content?.parts
+            ?.filter(part => typeof part.text === "string")
+            .map(part => part.text)
+            .join("\n")
+            .trim();
 
-            if (reply) {
-              return res.status(200).json({ reply, model });
-            }
-          } else {
-            lastError = data.error?.message || `Erreur (${response.status})`;
+          if (reply) {
+            return res.status(200).json({ reply, model });
           }
-        } catch (err) {
-          lastError = err.message;
+        } else {
+          lastError = data.error?.message || `Erreur (${response.status})`;
         }
+      } catch (err) {
+        lastError = err.message;
       }
     }
 
     return res.status(429).json({
-      error: `Service temporairement saturé : ${lastError}`
+      error: `Erreur API : ${lastError}`
     });
 
   } catch (error) {
