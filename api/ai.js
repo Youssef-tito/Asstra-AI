@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(500).json({
-        error: "Configuration serveur manquante : GEMINI_API_KEY introuvable sur Vercel."
+        error: "GEMINI_API_KEY introuvable dans les variables d'environnement Vercel."
       });
     }
 
@@ -47,11 +47,11 @@ module.exports = async function handler(req, res) {
     }
 
     const contents = [];
-    for (const item of incomingContents.slice(-20)) {
+    for (const item of incomingContents.slice(-10)) {
       if (!item || !["user", "model"].includes(item.role) || !Array.isArray(item.parts)) continue;
       const safeParts = [];
-      for (const part of item.parts.slice(0, 4)) {
-        if (part && typeof part.text === "string" && part.text.length <= 20000) {
+      for (const part of item.parts.slice(0, 2)) {
+        if (part && typeof part.text === "string" && part.text.length <= 10000) {
           safeParts.push({ text: part.text });
         }
       }
@@ -66,8 +66,9 @@ module.exports = async function handler(req, res) {
     const model = "gemini-3.8-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
+    // مهلة 9 ثوانٍ لتفادي تجاوز حد Vercel Serverless (10s)
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000);
+    const timeout = setTimeout(() => controller.abort(), 9000);
 
     let response;
     try {
@@ -77,28 +78,22 @@ module.exports = async function handler(req, res) {
         signal: controller.signal,
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et sympathique. Utilise uniquement 1 ou 2 emojis pertinents par réponse pour garder un ton dynamique mais professionnel et propre. Évite l'excès d'emojis." }]
+            parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
           },
           contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
         })
       });
     } finally {
       clearTimeout(timeout);
     }
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      return res.status(500).json({ error: "Erreur de lecture de la réponse Google Gemini." });
-    }
+    const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini Error Detail:", data);
       const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
       return res.status(response.status).json({
-        error: `Erreur Gemini (${response.status}): ${googleErrorMsg}`
+        error: `Erreur Google (${response.status}): ${googleErrorMsg}`
       });
     }
 
@@ -116,7 +111,7 @@ module.exports = async function handler(req, res) {
 
   } catch (error) {
     if (error.name === "AbortError") {
-      return res.status(504).json({ error: "Le délai de réponse a expiré." });
+      return res.status(504).json({ error: "Le délai de réponse a expiré (Timeout). Vérifiez votre clé API ou réessayez." });
     }
     return res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
