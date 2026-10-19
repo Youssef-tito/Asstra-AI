@@ -63,50 +63,42 @@ module.exports = async function handler(req, res) {
     if (imagePart) currentParts.push(imagePart);
     contents.push({ role: "user", parts: currentParts });
 
-    // Liste des modèles à tester en séquence
-    const modelsToTry = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
-    let lastError = null;
+    const model = "gemini-3.8-flash";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
-    for (const model of modelsToTry) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
-      
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
-            },
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-          })
-        });
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: "Tu es ASSTRA AI, un assistant intelligent, naturel et rapide." }]
+        },
+        contents,
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      })
+    });
 
-        const data = await response.json();
+    const data = await response.json();
 
-        if (response.ok) {
-          const reply = data.candidates?.[0]?.content?.parts
-            ?.filter(part => typeof part.text === "string")
-            .map(part => part.text)
-            .join("\n")
-            .trim();
-
-          if (reply) {
-            return res.status(200).json({ reply, model });
-          }
-        } else {
-          console.warn(`Modèle ${model} indisponible (${response.status}):`, data.error?.message);
-          lastError = data.error?.message || `Erreur ${response.status}`;
-        }
-      } catch (err) {
-        lastError = err.message;
-      }
+    if (!response.ok) {
+      console.error("Gemini Error Detail:", data);
+      const googleErrorMsg = data.error?.message || "Erreur inconnue de Gemini";
+      return res.status(response.status).json({
+        error: `Erreur Google (${response.status}): ${googleErrorMsg}`
+      });
     }
 
-    return res.status(503).json({
-      error: `Service temporairement indisponible sur les serveurs Google: ${lastError}`
-    });
+    const reply = data.candidates?.[0]?.content?.parts
+      ?.filter(part => typeof part.text === "string")
+      .map(part => part.text)
+      .join("\n")
+      .trim();
+
+    if (!reply) {
+      return res.status(502).json({ error: "L'assistant n'a pas renvoyé de réponse." });
+    }
+
+    return res.status(200).json({ reply, model });
 
   } catch (error) {
     return res.status(500).json({ error: "Erreur serveur: " + error.message });
