@@ -22,18 +22,15 @@ export default async function handler(req, res) {
 
     const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.";
 
-    // Préparation des messages pour l'API OpenRouter (Format OpenAI standard)
     const formattedMessages = [
       { role: "system", content: systemInstruction }
     ];
 
-    // Ajout de l'historique
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
       const text = m.content || m.text || "";
 
-      // Si le message contient une image, on l'ajoute au format vision d'OpenAI
       if (m.image && typeof m.image === 'string' && m.image.startsWith('data:image')) {
         formattedMessages.push({
           role: role,
@@ -47,7 +44,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Gestion du message et de l'image actuelle
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -66,17 +62,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // Appel direct de l'API OpenRouter (en utilisant le modèle Gemini 1.5 Flash via OpenRouter)
+    // Utilisation d'un model ID valide sur OpenRouter (ex: google/gemini-flash-1.5)
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${openRouterApiKey}`,
-        "HTTP-Referer": "https://asstra-ai.vercel.app", // Remplace par ton URL si besoin
+        "HTTP-Referer": "https://asstra-ai.vercel.app",
         "X-Title": "ASSTRA AI",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-1.5-flash", // Modèle ultra rapide et multimodal sur OpenRouter
+        model: "google/gemini-flash-1.5", 
         messages: formattedMessages,
         temperature: 0.4
       })
@@ -95,8 +91,8 @@ export default async function handler(req, res) {
       title: title || "Discussion Intelligente"
     });
 
-  } catch (error) {
-    console.error("Erreur OpenRouter API:", error);
-    return res.status(500).json({ error: error.message || "Erreur interne du serveur." });
-  }
-}
+  } cat
+
+<FollowUp>
+- Mets à jour ce code dans ton fichier `api/ai.js`, fais ton Commit, et dis-moi si tout fonctionne enfin correctement !
+</FollowUp>
