@@ -450,8 +450,6 @@ let conversations = [];
 let activeConversationId = null;
 let selectedImage = null;
 let isSending = false;
-let requestController = null;
-let recognition = null;
 
 const $ = id => document.getElementById(id);
 const chatMessages = $("chatMessages");
@@ -518,7 +516,7 @@ function clearImage() {
 
 function newConversation(render = true) {
   if (isSending) return;
-  activeConversationId = null; // Unset active ID so next prompt starts a fresh chat
+  activeConversationId = null; 
   clearImage();
   closeSidebar();
   if (render) saveAndRender();
@@ -571,7 +569,6 @@ function renderHistory() {
     del.type = "button";
     del.textContent = "×";
     del.title = "Supprimer la discussion";
-    del.setAttribute("aria-label", "Supprimer la discussion");
 
     item.append(icon, name, del);
     item.addEventListener("click", () => openConversation(c.id));
@@ -642,7 +639,6 @@ function appendMessage(m) {
   avatar.className = "avatar " +
     (m.role === "user" ? "user-avatar" : "ai-avatar");
   avatar.textContent = m.role === "user" ? "●" : "✦";
-  avatar.setAttribute("aria-hidden", "true");
 
   const bubble = document.createElement("div");
   bubble.className = "message " +
@@ -655,20 +651,11 @@ function appendMessage(m) {
     } else {
       const raw = window.marked
         ? marked.parse(m.text, { breaks: true })
-        : m.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        : m.text;
       bubble.innerHTML = window.DOMPurify
         ? DOMPurify.sanitize(raw)
         : raw;
     }
-  }
-
-  if (m.image) {
-    const img = document.createElement("img");
-    img.className = "message-image";
-    img.src = m.image;
-    img.alt = "Image envoyée";
-    img.loading = "lazy";
-    bubble.appendChild(img);
   }
 
   if (m.role === "user") row.append(bubble, avatar);
@@ -717,93 +704,126 @@ function resizeInput() {
   userInput.style.height = Math.min(userInput.scrollHeight, 150) + "px";
 }
 
-if (micBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = 'ar-TN';
-  recognition.interimResults = false;
-
-  micBtn.onclick = () => {
-    try {
-      recognition.start();
-      micBtn.classList.add("recording");
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  recognition.onresult = (event) => {
-    const speechToText = event.results[0][0].transcript;
-    userInput.value += (userInput.value ? " " : "") + speechToText;
-    resizeInput();
-    micBtn.classList.remove("recording");
-  };
-
-  recognition.onerror = () => micBtn.classList.remove("recording");
-  recognition.onend = () => micBtn.classList.remove("recording");
-} else if (micBtn) {
-  micBtn.style.display = "none";
-}
-
 const featureModal = $("featureModal");
 const featureTitle = $("featureTitle");
 const featureBody = $("featureBody");
 const PLAN_KEY = "asstra_ai_plans_v1";
-function closeFeature(){ featureModal.classList.remove("open"); }
-$("featureClose").addEventListener("click", closeFeature);
-featureModal.addEventListener("click", e => { if(e.target === featureModal) closeFeature(); });
+
+function closeFeature() {
+  if (featureModal) featureModal.classList.remove("open");
+}
+
+if ($("featureClose")) {
+  $("featureClose").addEventListener("click", closeFeature);
+}
+
+if (featureModal) {
+  featureModal.addEventListener("click", e => { if(e.target === featureModal) closeFeature(); });
+}
+
 document.addEventListener("keydown", e => { if(e.key === "Escape") closeFeature(); });
-function showFeature(title, html){
+
+function showFeature(title, html) {
+  if (!featureModal) return;
   featureTitle.textContent = title;
   featureBody.innerHTML = html;
   featureModal.classList.add("open");
 }
-function openFeature(name){
+
+function openFeature(name) {
   closeSidebar();
-  if(name === "images"){
+  if (name === "images") {
     showFeature("Images IA", `<p class="feature-description">Décris l’image que tu veux créer. ASSTRA AI préparera une demande de génération dans la conversation.</p><input class="feature-input" id="imagePromptFeature" placeholder="Ex. logo futuriste violet pour ASSTRA AI"><button class="feature-primary" id="startImageFeature">Créer une image ✨</button>`);
-    $("startImageFeature").onclick=()=>{const v=$("imagePromptFeature").value.trim();if(!v)return;closeFeature();if(!getActive())newConversation();userInput.value="Crée une image : "+v;resizeInput();sendMessage();};
-  } else if(name === "library"){
-    const imgs=[]; conversations.forEach(c=>(c.messages||[]).forEach(m=>{if(m.image)imgs.push({src:m.image,alt:m.text||"Image ASSTRA AI"});}));
-    const html=imgs.length?`<p class="feature-description">Images trouvées dans tes conversations.</p><div class="library-grid">${imgs.map((im,i)=>`<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>`:`<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées apparaîtront ici.</div>`;
-    showFeature("Bibliothèque",html);
-  } else if(name === "planning"){
-    let plans=[];try{plans=JSON.parse(localStorage.getItem(PLAN_KEY)||"[]")}catch{}
-    showFeature("Planification",`<p class="feature-description">Crée des rappels simples enregistrés dans ce navigateur.</p><input class="feature-input" id="planText" placeholder="Ex. Réviser les maths"><input class="feature-input" id="planDate" type="datetime-local"><button class="feature-primary" id="addPlan">＋ Ajouter un rappel</button><div id="planList" style="margin-top:16px"></div>`);
-    const draw=()=>{let a=[];try{a=JSON.parse(localStorage.getItem(PLAN_KEY)||"[]")}catch{};$("planList").innerHTML=a.length?a.map((p,i)=>`<div class="feature-action"><span>◷</span><span style="flex:1">${p.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}<small>${p.date?new Date(p.date).toLocaleString():"Sans date"}</small></span><button data-del-plan="${i}" style="border:0;background:transparent;color:#c65b77">×</button></div>`).join(""):`<p class="feature-description">Aucun rappel pour le moment.</p>`;$("planList").querySelectorAll("[data-del-plan]").forEach(b=>b.onclick=()=>{a.splice(Number(b.dataset.delPlan),1);localStorage.setItem(PLAN_KEY,JSON.stringify(a));draw();});};
-    $("addPlan").onclick=()=>{const textVal=$("planText").value.trim();if(!textVal)return;plans.push({text:textVal,date:$("planDate").value});localStorage.setItem(PLAN_KEY,JSON.stringify(plans));$("planText").value="";$("planDate").value="";draw();};draw();
-  } else if(name === "plugins"){
-    showFeature("Outils & plugins",`<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image</span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image</span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation</span></button>`);
-    $("pluginImage").onclick=()=>openFeature("images");$("pluginAnalyze").onclick=()=>{closeFeature();$("imageBtn").click();userInput.focus();};$("pluginCode").onclick=()=>{closeFeature();userInput.value="Aide-moi à écrire et expliquer du code étape par étape.";resizeInput();userInput.focus();};
-  } else if(name === "projects"){
-    showFeature("Projets",`<p class="feature-description">Organise ton travail.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI</span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet</span></button>`);
-    $("projectAsstra").onclick=()=>{closeFeature();userInput.value="Continuons à développer mon projet ASSTRA AI. Propose-moi les prochaines améliorations.";resizeInput();userInput.focus();};$("projectNew").onclick=()=>{closeFeature();newConversation();};
-  } else if(name === "codex"){
-    showFeature("Codex · Assistant de code",`<p class="feature-description">Utilise l’assistant ASSTRA pour écrire et corriger du code.</p><button class="feature-action" id="codexWrite"><span>⌘</span><span>Écrire du code</span></button><button class="feature-action" id="codexFix"><span>⚙</span><span>Corriger un bug</span></button>`);
-    $("codexWrite").onclick=()=>{closeFeature();userInput.value="Aide-moi à écrire du code propre et explique chaque étape.";resizeInput();userInput.focus();};$("codexFix").onclick=()=>{closeFeature();userInput.value="Aide-moi à déboguer ce code : ";resizeInput();userInput.focus();};
+    const startBtn = $("startImageFeature");
+    if (startBtn) {
+      startBtn.onclick = () => {
+        const v = $("imagePromptFeature").value.trim();
+        if (!v) return;
+        closeFeature();
+        if (!getActive()) newConversation();
+        userInput.value = "Crée une image : " + v;
+        resizeInput();
+        sendMessage();
+      };
+    }
+  } else if (name === "library") {
+    const imgs = []; 
+    conversations.forEach(c => (c.messages || []).forEach(m => { if (m.image) imgs.push({ src: m.image, alt: m.text || "Image ASSTRA AI" }); }));
+    const html = imgs.length ? `<p class="feature-description">Images trouvées dans tes conversations.</p><div class="library-grid">${imgs.map((im, i) => `<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>` : `<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées apparaîtront ici.</div>`;
+    showFeature("Bibliothèque", html);
+  } else if (name === "planning") {
+    let plans = [];
+    try { plans = JSON.parse(localStorage.getItem(PLAN_KEY) || "[]"); } catch {}
+    showFeature("Planification", `<p class="feature-description">Crée des rappels simples enregistrés dans ce navigateur.</p><input class="feature-input" id="planText" placeholder="Ex. Réviser les maths"><input class="feature-input" id="planDate" type="datetime-local"><button class="feature-primary" id="addPlan">＋ Ajouter un rappel</button><div id="planList" style="margin-top:16px"></div>`);
+    const draw = () => {
+      let a = [];
+      try { a = JSON.parse(localStorage.getItem(PLAN_KEY) || "[]"); } catch {}
+      const listEl = $("planList");
+      if (!listEl) return;
+      listEl.innerHTML = a.length ? a.map((p, i) => `<div class="feature-action"><span>◷</span><span style="flex:1">${p.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}<small>${p.date ? new Date(p.date).toLocaleString() : "Sans date"}</small></span><button data-del-plan="${i}" style="border:0;background:transparent;color:#c65b77">×</button></div>`).join("") : `<p class="feature-description">Aucun rappel pour le moment.</p>`;
+      listEl.querySelectorAll("[data-del-plan]").forEach(b => b.onclick = () => {
+        a.splice(Number(b.dataset.delPlan), 1);
+        localStorage.setItem(PLAN_KEY, JSON.stringify(a));
+        draw();
+      });
+    };
+    const addPlanBtn = $("addPlan");
+    if (addPlanBtn) {
+      addPlanBtn.onclick = () => {
+        const textVal = $("planText").value.trim();
+        if (!textVal) return;
+        plans.push({ text: textVal, date: $("planDate").value });
+        localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
+        $("planText").value = "";
+        $("planDate").value = "";
+        draw();
+      };
+    }
+    draw();
+  } else if (name === "plugins") {
+    showFeature("Outils & plugins", `<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image</span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image</span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation</span></button>`);
+    if ($("pluginImage")) $("pluginImage").onclick = () => openFeature("images");
+    if ($("pluginAnalyze")) $("pluginAnalyze").onclick = () => { closeFeature(); if ($("imageBtn")) $("imageBtn").click(); userInput.focus(); };
+    if ($("pluginCode")) $("pluginCode").onclick = () => { closeFeature(); userInput.value = "Aide-moi à écrire et expliquer du code étape par étape."; resizeInput(); userInput.focus(); };
+  } else if (name === "projects") {
+    showFeature("Projets", `<p class="feature-description">Organise ton travail.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI</span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet</span></button>`);
+    if ($("projectAsstra")) $("projectAsstra").onclick = () => { closeFeature(); userInput.value = "Continuons à développer mon projet ASSTRA AI. Propose-moi les prochaines améliorations."; resizeInput(); userInput.focus(); };
+    if ($("projectNew")) $("projectNew").onclick = () => { closeFeature(); newConversation(); };
+  } else if (name === "codex") {
+    showFeature("Codex · Assistant de code", `<p class="feature-description">Utilise l’assistant ASSTRA pour écrire et corriger du code.</p><button class="feature-action" id="codexWrite"><span>⌘</span><span>Écrire du code</span></button><button class="feature-action" id="codexFix"><span>⚙</span><span>Corriger un bug</span></button>`);
+    if ($("codexWrite")) $("codexWrite").onclick = () => { closeFeature(); userInput.value = "Aide-moi à écrire du code propre et explique chaque étape."; resizeInput(); userInput.focus(); };
+    if ($("codexFix")) $("codexFix").onclick = () => { closeFeature(); userInput.value = "Aide-moi à déboguer ce code : "; resizeInput(); userInput.focus(); };
   } else {
-    showFeature("Plus d’options",`<button class="feature-action" id="moreNew"><span>＋</span><span>Nouvelle discussion</span></button><button class="feature-action" id="moreHistory"><span>◷</span><span>Discussions récentes</span></button><p class="feature-description">Les conversations sont synchronisées automatiquement.</p>`);
-    $("moreNew").onclick=()=>{closeFeature();newConversation();};$("moreHistory").onclick=closeFeature;
+    showFeature("Plus d’options", `<button class="feature-action" id="moreNew"><span>＋</span><span>Nouvelle discussion</span></button><button class="feature-action" id="moreHistory"><span>◷</span><span>Discussions récentes</span></button><p class="feature-description">Les conversations sont synchronisées automatiquement.</p>`);
+    if ($("moreNew")) $("moreNew").onclick = () => { closeFeature(); newConversation(); };
+    if ($("moreHistory")) $("moreHistory").onclick = closeFeature;
   }
 }
-document.querySelectorAll("[data-feature]").forEach(b=>b.addEventListener("click",()=>openFeature(b.dataset.feature)));
 
-$("newChatBtn").addEventListener("click", () => newConversation(true));
-$("menuBtn").addEventListener("click", () => {
-  sidebar.classList.add("open");
-  overlay.classList.add("open");
+document.querySelectorAll("[data-feature]").forEach(b => {
+  b.addEventListener("click", () => openFeature(b.dataset.feature));
 });
-overlay.addEventListener("click", closeSidebar);
+
+if ($("newChatBtn")) $("newChatBtn").addEventListener("click", () => newConversation(true));
+if ($("menuBtn")) {
+  $("menuBtn").addEventListener("click", () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("open");
+  });
+}
+if (overlay) overlay.addEventListener("click", closeSidebar);
 
 let analyzeMode = false;
 const analyzeBtn = $("analyzeBtn");
-analyzeBtn.addEventListener("click", () => {
-  analyzeMode = !analyzeMode;
-  analyzeBtn.setAttribute("aria-pressed", String(analyzeMode));
-  analyzeBtn.title = analyzeMode ? "Désactiver le mode analyse" : "Activer le mode analyse";
-  userInput.placeholder = analyzeMode ? "Que souhaitez-vous analyser ?" : "Poser une question";
-  if (analyzeMode) userInput.focus();
-});
+if (analyzeBtn) {
+  analyzeBtn.addEventListener("click", () => {
+    analyzeMode = !analyzeMode;
+    analyzeBtn.setAttribute("aria-pressed", String(analyzeMode));
+    analyzeBtn.title = analyzeMode ? "Désactiver le mode analyse" : "Activer le mode analyse";
+    userInput.placeholder = analyzeMode ? "Que souhaitez-vous analyser ?" : "Poser une question";
+    if (analyzeMode) userInput.focus();
+  });
+}
 
 async function sendMessage() {
   if (isSending) return;
@@ -813,7 +833,7 @@ async function sendMessage() {
   if (analyzeMode) {
     text = "Analyse cette demande avec méthode, détaille les points importants :\n\n" + text;
     analyzeMode = false;
-    analyzeBtn.setAttribute("aria-pressed", "false");
+    if (analyzeBtn) analyzeBtn.setAttribute("aria-pressed", "false");
     userInput.placeholder = "Poser une question";
   }
 
@@ -832,8 +852,8 @@ async function sendMessage() {
   saveAndRender();
 
   isSending = true;
-  sendBtn.disabled = true;
-  $("newChatBtn").disabled = true;
+  if (sendBtn) sendBtn.disabled = true;
+  if ($("newChatBtn")) $("newChatBtn").disabled = true;
   showTyping();
 
   try {
@@ -867,8 +887,8 @@ async function sendMessage() {
   } finally {
     removeTyping();
     isSending = false;
-    sendBtn.disabled = false;
-    $("newChatBtn").disabled = false;
+    if (sendBtn) sendBtn.disabled = false;
+    if ($("newChatBtn")) $("newChatBtn").disabled = false;
     c.updatedAt = Date.now();
     conversations.sort((a, b) => b.updatedAt - a.updatedAt);
     saveAndRender();
@@ -876,14 +896,16 @@ async function sendMessage() {
   }
 }
 
-userInput.addEventListener("input", resizeInput);
-userInput.addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-    event.preventDefault();
-    sendMessage();
-  }
-});
-sendBtn.addEventListener("click", sendMessage);
+if (userInput) {
+  userInput.addEventListener("input", resizeInput);
+  userInput.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+}
+if (sendBtn) sendBtn.addEventListener("click", sendMessage);
 
 // Load from Supabase on start
 loadConversationsFromSupabase();
