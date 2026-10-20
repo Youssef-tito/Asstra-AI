@@ -457,8 +457,10 @@ const historyList = $("historyList");
 const userInput = $("userInput");
 const sendBtn = $("sendBtn");
 const imageInput = $("imageInput");
+const imageBtn = $("imageBtn");
 const imagePreview = $("imagePreview");
 const previewImg = $("previewImg");
+const removeImageBtn = $("removeImageBtn");
 const sidebar = $("sidebar");
 const overlay = $("overlay");
 const micBtn = $("micBtn");
@@ -509,9 +511,32 @@ function closeSidebar() {
 
 function clearImage() {
   selectedImage = null;
-  imageInput.value = "";
-  previewImg.removeAttribute("src");
-  imagePreview.style.display = "none";
+  if (imageInput) imageInput.value = "";
+  if (previewImg) previewImg.removeAttribute("src");
+  if (imagePreview) imagePreview.style.display = "none";
+}
+
+if (imageBtn && imageInput) {
+  imageBtn.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        selectedImage = event.target.result;
+        if (previewImg) previewImg.src = selectedImage;
+        if (imagePreview) imagePreview.style.display = "flex";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+if (removeImageBtn) {
+  removeImageBtn.addEventListener("click", clearImage);
 }
 
 function newConversation(render = true) {
@@ -550,6 +575,7 @@ function saveAndRender() {
 }
 
 function renderHistory() {
+  if (!historyList) return;
   historyList.replaceChildren();
 
   conversations.forEach(c => {
@@ -585,6 +611,7 @@ function renderHistory() {
 }
 
 function addWelcome() {
+  if (!chatMessages) return;
   const welcome = document.createElement("div");
   welcome.className = "welcome";
   welcome.innerHTML = `
@@ -631,6 +658,7 @@ function addWelcome() {
 }
 
 function appendMessage(m) {
+  if (!chatMessages) return;
   const row = document.createElement("div");
   row.className = "message-row" +
     (m.role === "user" ? " user-row" : "");
@@ -658,6 +686,15 @@ function appendMessage(m) {
     }
   }
 
+  if (m.image) {
+    const img = document.createElement("img");
+    img.className = "message-image";
+    img.src = m.image;
+    img.alt = "Image envoyée";
+    img.loading = "lazy";
+    bubble.appendChild(img);
+  }
+
   if (m.role === "user") row.append(bubble, avatar);
   else row.append(avatar, bubble);
 
@@ -665,6 +702,7 @@ function appendMessage(m) {
 }
 
 function renderChat() {
+  if (!chatMessages) return;
   chatMessages.replaceChildren();
   const c = getActive();
 
@@ -678,6 +716,7 @@ function renderChat() {
 }
 
 function showTyping() {
+  if (!chatMessages) return;
   const row = document.createElement("div");
   row.className = "message-row";
   row.id = "typingIndicator";
@@ -700,6 +739,7 @@ function removeTyping() {
 }
 
 function resizeInput() {
+  if (!userInput) return;
   userInput.style.height = "auto";
   userInput.style.height = Math.min(userInput.scrollHeight, 150) + "px";
 }
@@ -783,7 +823,7 @@ function openFeature(name) {
   } else if (name === "plugins") {
     showFeature("Outils & plugins", `<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image</span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image</span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation</span></button>`);
     if ($("pluginImage")) $("pluginImage").onclick = () => openFeature("images");
-    if ($("pluginAnalyze")) $("pluginAnalyze").onclick = () => { closeFeature(); if ($("imageBtn")) $("imageBtn").click(); userInput.focus(); };
+    if ($("pluginAnalyze")) $("pluginAnalyze").onclick = () => { closeFeature(); if (imageBtn) imageBtn.click(); userInput.focus(); };
     if ($("pluginCode")) $("pluginCode").onclick = () => { closeFeature(); userInput.value = "Aide-moi à écrire et expliquer du code étape par étape."; resizeInput(); userInput.focus(); };
   } else if (name === "projects") {
     showFeature("Projets", `<p class="feature-description">Organise ton travail.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI</span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet</span></button>`);
@@ -829,7 +869,8 @@ async function sendMessage() {
   if (isSending) return;
 
   let text = userInput.value.trim();
-  if (!text) return;
+  if (!text && !selectedImage) return;
+
   if (analyzeMode) {
     text = "Analyse cette demande avec méthode, détaille les points importants :\n\n" + text;
     analyzeMode = false;
@@ -839,16 +880,18 @@ async function sendMessage() {
 
   let c = getActive();
   if (!c) {
-    c = { id: makeId(), title: text.slice(0, 42), messages: [], updatedAt: Date.now() };
+    c = { id: makeId(), title: text ? text.slice(0, 42) : "Image", messages: [], updatedAt: Date.now() };
     conversations.unshift(c);
     activeConversationId = c.id;
   }
 
-  c.messages.push({ role: "user", text: text, image: null });
-  if (c.messages.length === 1) c.title = text.slice(0, 42);
+  const currentImage = selectedImage;
+  c.messages.push({ role: "user", text: text, image: currentImage });
+  if (c.messages.length === 1 && text) c.title = text.slice(0, 42);
 
   userInput.value = "";
   userInput.style.height = "auto";
+  clearImage();
   saveAndRender();
 
   isSending = true;
@@ -868,7 +911,8 @@ async function sendMessage() {
       body: JSON.stringify({
         messages: formattedMessages,
         conversationId: c.id.length > 20 ? c.id : null,
-        title: c.title
+        title: c.title,
+        image: currentImage
       })
     });
 
@@ -892,7 +936,7 @@ async function sendMessage() {
     c.updatedAt = Date.now();
     conversations.sort((a, b) => b.updatedAt - a.updatedAt);
     saveAndRender();
-    userInput.focus();
+    if (userInput) userInput.focus();
   }
 }
 
