@@ -13,11 +13,11 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
       return res.status(500).json({
-        error: "GROQ_API_KEY introuvable sur Vercel."
+        error: "OPENROUTER_API_KEY introuvable sur Vercel."
       });
     }
 
@@ -42,16 +42,17 @@ module.exports = async function handler(req, res) {
 
     messages.push({ role: "user", content: prompt });
 
-    // Active models in Groq right now
-    const modelsToTry = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+    const modelsToTry = ["deepseek/deepseek-r1:free", "meta-llama/llama-3.3-70b-instruct:free"];
     let lastError = null;
 
     for (const model of modelsToTry) {
       try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${apiKey}`,
+            "HTTP-Referer": "https://asstra-ai.vercel.app",
+            "X-Title": "ASSTRA AI",
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
@@ -78,7 +79,7 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(500).json({
-      error: "Erreur Groq: " + lastError
+      error: "Erreur OpenRouter: " + lastError
     });
 
   } catch (error) {
