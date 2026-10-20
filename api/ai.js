@@ -1,94 +1,123 @@
-module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+import { createClient } from '@supabase/supabase-js';
 
-  if (req.method === "OPTIONS") {
-    res.setHeader("Allow", "POST, OPTIONS");
-    return res.status(204).end();
+// Init Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+
+export default async function handler(req, res) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Méthode non autorisée." });
+  // 1. Fetch Conversations from Supabase
+  if (req.method === 'GET') {
+    if (!supabase) {
+      return res.status(200).json({ conversations: [] });
+    }
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(200).json({ conversations: data });
   }
 
-  try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+  // 2. Chat with AI & Save to Supabase
+  if (req.method === 'POST') {
+    try {
+      const { messages, conversationId, title } = req.body;
 
-    if (!apiKey) {
-      return res.status(500).json({
-        error: "OPENROUTER_API_KEY introuvable sur Vercel."
-      });
-    }
-
-    const body = req.body || {};
-    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-    const incomingContents = Array.isArray(body.contents) ? body.contents : [];
-
-    if (!prompt) {
-      return res.status(400).json({ error: "Veuillez envoyer un message." });
-    }
-
-    const messages = [
-      { role: "system", content: "Tu es ASSTRA AI, un assistant intelligent, naturel et ultra rapide." }
-    ];
-
-    for (const item of incomingContents.slice(-6)) {
-      if (item && ["user", "assistant"].includes(item.role) && Array.isArray(item.parts)) {
-        const text = item.parts.map(p => p.text).join(" ");
-        if (text) messages.push({ role: item.role, content: text });
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Invalid messages format" });
       }
-    }
 
-    messages.push({ role: "user", content: prompt });
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "OPENROUTER_API_KEY is not configured" });
+      }
 
-    // OpenRouter Auto-Routing for active free models
-    const modelsToTry = [
-      "deepseek/deepseek-r1:free",
-      "google/gemini-2.0-flash-exp:free",
-      "openrouter/auto"
-    ];
+      // Models list with fallback logic
+      const models = [
+        "openrouter/auto",
+        "deepseek/deepseek-r1:free",
+        "google/gemini-2.0-flash-exp:free"
+      ];
 
-    let lastError = null;
+      let replyContent = null;
+      let lastError = null;
 
-    for (const model of modelsToTry) {
-      try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "HTTP-Referer": "https://asstra-ai.vercel.app",
-            "X-Title": "ASSTRA AI",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature: 0.7,
-            max_tokens: 2048
-          })
-        });
+      for (const model of models) {
+        try {
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://asstra-ai.vercel.app",
+              "X-Title": "ASSTRA AI"
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: messages
+            })
+          });
 
-        const data = await response.json();
-
-        if (response.ok) {
-          const reply = data.choices?.[0]?.message?.content;
-          if (reply) {
-            return res.status(200).json({ reply, model });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.choices && data.choices.length > 0) {
+              replyContent = data.choices[0].message.content;
+              break; // Success!
+            }
           }
-        } else {
-          lastError = data.error?.message || response.statusText;
+        } catch (err) {
+          lastError = err;
         }
-      } catch (err) {
-        lastError = err.message;
       }
+
+      if (!replyContent) {
+        return res.status(502).json({ error: "Failed to get AI response", details: lastError?.message });
+      }
+
+      // Save updated conversation to Supabase
+      let updatedId = conversationId;
+      if (supabase) {
+        const updatedMessages = [...messages, { role: "assistant", content: replyContent }];
+        const convTitle = title || messages[0]?.content?.slice(0, 30) || "Nouvelle discussion";
+
+        if (conversationId) {
+          await supabase
+            .from('conversations')
+            .update({ messages: updatedMessages, updated_at: new Date() })
+            .eq('id', conversationId);
+        } else {
+          const { data } = await supabase
+            .from('conversations')
+            .insert([{ title: convTitle, messages: updatedMessages }])
+            .select();
+          if (data && data.length > 0) {
+            updatedId = data[0].id;
+          }
+        }
+      }
+
+      return res.status(200).json({
+        choices: [{ message: { role: "assistant", content: replyContent } }],
+        conversationId: updatedId
+      });
+
+    } catch (error) {
+      return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
-
-    return res.status(500).json({
-      error: "Erreur OpenRouter: " + lastError
-    });
-
-  } catch (error) {
-    return res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
-};
+}
