@@ -33,10 +33,13 @@ body {
 }
 button, textarea { font: inherit; }
 button { cursor: pointer; }
-.app { display: flex; height: 100dvh; overflow: hidden; }
+
+.app { display: flex; height: 100dvh; overflow: hidden; position: relative; }
+
 .sidebar {
   width: 265px; flex-shrink: 0; display: flex; flex-direction: column;
-  padding: 17px 13px; background: var(--sidebar); border-right: 1px solid var(--border); z-index: 10;
+  padding: 17px 13px; background: var(--sidebar); border-right: 1px solid var(--border); z-index: 100;
+  transition: transform 0.25s ease;
 }
 .brand { display: flex; align-items: center; gap: 11px; padding: 5px 7px 23px; }
 .logo {
@@ -62,19 +65,18 @@ button { cursor: pointer; }
 .history-item:hover { background: #f1efff; }
 .history-item.active { background: #eeebff; color: var(--primary-dark); }
 .history-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.delete-chat { border: 0; background: transparent; color: #aaa; font-size: 17px; }
 
 .main { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; }
 .header {
   height: 62px; display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; border-bottom: 1px solid var(--border); background: white;
+  padding: 0 24px; border-bottom: 1px solid var(--border); background: white; flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; gap: 12px; }
 .header-title { font-size: 14px; font-weight: 800; }
 .model-label { padding: 5px 9px; border-radius: 20px; background: #f3f0ff; color: #7261d9; font-size: 10px; }
 .online { display: flex; align-items: center; gap: 6px; color: #858398; font-size: 11px; }
 .dot { width: 7px; height: 7px; background: #25c685; border-radius: 50%; }
-.menu-btn { display: none; width: 37px; height: 37px; border: 0; border-radius: 10px; color: var(--primary); background: var(--purple-light); font-size: 20px; }
+.menu-btn { display: none; width: 37px; height: 37px; border: 0; border-radius: 10px; color: var(--primary); background: var(--purple-light); font-size: 20px; align-items: center; justify-content: center; }
 
 .chat { flex: 1; min-height: 0; overflow-y: auto; padding: 28px 18px 35px; scroll-behavior: smooth; }
 .welcome { max-width: 680px; margin: 9vh auto 0; text-align: center; }
@@ -83,16 +85,13 @@ button { cursor: pointer; }
   border-radius: 23px; background: linear-gradient(140deg, #6252ee, #a855f7);
   box-shadow: 0 12px 34px #7564f52d;
 }
-.welcome h1 { font-size: clamp(25px, 4vw, 36px); font-weight: 800; }
+.welcome h1 { font-size: clamp(23px, 4vw, 34px); font-weight: 800; }
 .gradient-text { background: linear-gradient(100deg, #6657f5, #b053ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .welcome p { max-width: 460px; margin: 13px auto 29px; color: var(--muted); font-size: 13px; line-height: 1.8; }
-.suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
-.suggestion { padding: 15px; background: white; border: 1px solid var(--border); border-radius: 14px; transition: .2s; }
-.suggestion:hover { border-color: #c9c0ff; background: #fcfbff; }
 
 .message-row { width: 100%; max-width: 790px; margin: 0 auto 25px; display: flex; align-items: flex-start; gap: 12px; }
 .message-row.user-row { justify-content: flex-end; }
-.avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 11px; font-size: 14px; }
+.avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 11px; font-size: 14px; flex-shrink: 0; }
 .ai-avatar { color: white; background: linear-gradient(140deg, #6657f5, #a855f7); }
 .user-avatar { color: #6657f5; background: #eeebff; }
 .message { max-width: calc(100% - 44px); font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
@@ -100,7 +99,7 @@ button { cursor: pointer; }
 .message.assistant { flex: 1; }
 .message-image { display: block; max-width: min(280px, 100%); max-height: 300px; object-fit: contain; margin-top: 9px; border: 1px solid var(--border); border-radius: 12px; }
 
-.composer-area { padding: 12px 18px max(13px, env(safe-area-inset-bottom)); background: white; }
+.composer-area { padding: 12px 18px max(13px, env(safe-area-inset-bottom)); background: white; flex-shrink: 0; }
 .composer-wrap { max-width: 790px; margin: 0 auto; position: relative; }
 .image-preview { display: none; align-items: center; gap: 10px; padding: 8px; margin-bottom: 10px; background: #f5f2ff; border-radius: 12px; }
 .image-preview img { width: 47px; height: 47px; object-fit: cover; border-radius: 8px; }
@@ -112,8 +111,8 @@ button { cursor: pointer; }
   background: white; border: 1px solid #dedce9; border-radius: 18px; box-shadow: 0 4px 20px #24204a08;
 }
 .composer textarea { flex: 1; max-height: 150px; resize: none; padding: 10px 3px; border: 0; outline: 0; background: transparent; font-size: 14px; }
-.composer-plus { width: 38px; height: 38px; border: 0; border-radius: 50%; background: #f3f0ff; color: var(--primary); font-size: 22px; display: grid; place-items: center; }
-.send-btn { width: 39px; height: 39px; border: 0; border-radius: 12px; background: linear-gradient(140deg, #6657f5, #8b5cf6); color: white; font-size: 22px; display: grid; place-items: center; }
+.composer-plus { width: 38px; height: 38px; border: 0; border-radius: 50%; background: #f3f0ff; color: var(--primary); font-size: 22px; display: grid; place-items: center; flex-shrink: 0; }
+.send-btn { width: 39px; height: 39px; border: 0; border-radius: 12px; background: linear-gradient(140deg, #6657f5, #8b5cf6); color: white; font-size: 22px; display: grid; place-items: center; flex-shrink: 0; }
 
 /* Plus Popup Menu */
 .plus-menu {
@@ -132,6 +131,23 @@ button { cursor: pointer; }
 
 .disclaimer { margin-top: 9px; color: #a09eac; font-size: 10px; text-align: center; }
 .overlay { display: none; }
+
+/* Responsive Mobile Layout Fix */
+@media(max-width: 768px) {
+  .sidebar {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    transform: translateX(-105%);
+    box-shadow: none;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+  }
+  .overlay.open {
+    display: block; position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,0.35);
+  }
+  .menu-btn { display: flex; }
+}
 </style>
 </head>
 <body>
@@ -184,7 +200,6 @@ button { cursor: pointer; }
 
         <div class="composer">
           <button class="composer-plus" id="imageBtn" title="Ajouter">＋</button>
-          <!-- Hidden inputs -->
           <input type="file" id="imageInput" accept="image/*" hidden>
           <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
           <input type="file" id="fileInput" accept=".pdf,.txt,.doc,.docx" hidden>
@@ -221,6 +236,7 @@ const previewImg = $("previewImg");
 const removeImageBtn = $("removeImageBtn");
 const sidebar = $("sidebar");
 const overlay = $("overlay");
+const menuBtn = $("menuBtn");
 
 function makeId() {
   return window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -294,12 +310,11 @@ if ($("menuStudy")) {
   $("menuStudy").onclick = () => { plusMenu.classList.remove("open"); userInput.value = "Aide-moi étape par étape sur : "; userInput.focus(); };
 }
 
-// Handle file/image selections
 function handleFileSelect(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    selectedImage = e.target.result; // Base64
+    selectedImage = e.target.result;
     if (previewImg) previewImg.src = selectedImage;
     if (imagePreview) imagePreview.style.display = "flex";
   };
@@ -315,18 +330,25 @@ if (fileInput) fileInput.onchange = (e) => {
 
 if (removeImageBtn) removeImageBtn.onclick = clearImage;
 
+function closeSidebar() {
+  if (sidebar) sidebar.classList.remove("open");
+  if (overlay) overlay.classList.remove("open");
+}
+
 function newConversation(render = true) {
   if (isSending) return;
   activeConversationId = null;
   clearImage();
+  closeSidebar();
   if (render) saveAndRender();
-  userInput.focus();
+  if (userInput) userInput.focus();
 }
 
 function openConversation(id) {
   if (isSending) return;
   activeConversationId = id;
   clearImage();
+  closeSidebar();
   saveAndRender();
 }
 
@@ -436,7 +458,7 @@ async function sendMessage() {
       body: JSON.stringify({
         messages: c.messages.map(m => ({ role: m.role === 'model' ? 'assistant' : m.role, content: m.text })),
         conversationId: c.id,
-        image: currentImage // Baathna el image base64 lel backend bash el AI ta9raha!
+        image: currentImage
       })
     });
 
@@ -463,7 +485,15 @@ if (userInput) {
 }
 if (sendBtn) sendBtn.onclick = sendMessage;
 if ($("newChatBtn")) $("newChatBtn").onclick = () => newConversation(true);
-if ($("menuBtn")) $("menuBtn").onclick = () => sidebar.classList.toggle("open");
+if (menuBtn) {
+  menuBtn.onclick = () => {
+    sidebar.classList.toggle("open");
+    overlay.classList.toggle("open");
+  };
+}
+if (overlay) {
+  overlay.onclick = closeSidebar;
+}
 
 loadConversationsFromSupabase();
 </script>
