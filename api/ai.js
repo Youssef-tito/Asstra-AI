@@ -24,25 +24,15 @@ export default async function handler(req, res) {
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
-    // Reconstruction de l'historique
+    // Reconstruction de l'historique texte uniquement (pour économiser la mémoire)
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
       const text = m.content || m.text || "";
-
-      if (m.image && typeof m.image === 'string' && m.image.startsWith('data:image')) {
-        formattedMessages.push({
-          role: role,
-          content: [
-            { type: "text", text: text || "Voici l'image." },
-            { type: "image_url", image_url: { url: m.image } }
-          ]
-        });
-      } else {
-        formattedMessages.push({ role: role, content: text });
-      }
+      formattedMessages.push({ role: role, content: text });
     }
 
+    // Traitement du dernier message avec l'image courante
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -61,7 +51,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Utilisation de openrouter/auto pour un routage automatique sans plantage
+    // Utilisation d'un modèle vision gratuit et rapide sur OpenRouter
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -71,7 +61,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openrouter/auto", 
+        model: "google/gemini-2.0-flash-exp:free",
         messages: formattedMessages,
         temperature: 0.4
       })
@@ -80,7 +70,7 @@ export default async function handler(req, res) {
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
-      throw new Error(data.error?.message || "Erreur lors de la communication avec OpenRouter.");
+      throw new Error(data.error?.message || "Erreur OpenRouter");
     }
 
     const aiReply = data.choices?.[0]?.message?.content || "Désolé, je n'ai pas pu générer de réponse.";
