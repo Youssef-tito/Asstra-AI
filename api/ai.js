@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-flash-1.5", 
+        model: "meta-llama/llama-3.2-11b-vision-instruct", 
         messages: formattedMessages,
         temperature: 0.4
       })
