@@ -122,7 +122,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .bubble p { margin:0 0 10px; }
 .bubble p:last-child { margin-bottom:0; }
 .bubble pre { overflow:auto; background:#211c35; color:#eee7ff; padding:13px; border-radius:10px; }
-.bubble code { font-size:12px; }
 .bubble img.attachment { display:block; max-width:min(320px,100%); max-height:300px; object-fit:contain; border-radius:12px; margin-bottom:10px; }
 .file-chip { display:inline-flex; padding:8px 10px; border:1px solid #ded5ff; border-radius:9px; margin-bottom:9px; font-size:12px; }
 .typing { display:flex; gap:5px; padding:7px; }
@@ -165,20 +164,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .menu-pop.open { display:block; }
 .menu-pop button { display:block; width:100%; border:0; background:white; padding:11px; text-align:left; border-radius:9px; font-size:12px; color:var(--text); }
 .menu-pop button:hover { background:var(--purple-light); }
-.auth-screen {
-  position:fixed; inset:0; z-index:100; background:#fffffff2; backdrop-filter:blur(8px);
-  display:none; align-items:center; justify-content:center; padding:20px;
-}
-.auth-screen.show { display:flex; }
-.auth-card { width:min(420px,100%); border:1px solid var(--border); background:white; border-radius:23px; padding:27px; box-shadow:var(--shadow); }
-.auth-card h2 { margin:0 0 8px; font-size:23px; }
-.auth-card p { color:var(--muted); font-size:13px; line-height:1.6; }
-.auth-card input { width:100%; margin-top:10px; border:1px solid var(--border); padding:13px; border-radius:11px; outline:0; }
-.auth-card input:focus { border-color:var(--purple); }
-.primary-btn { border:0; background:var(--purple); color:white; padding:13px; border-radius:11px; width:100%; margin-top:13px; font-weight:700; }
-.auth-switch { text-align:center; margin-top:15px; font-size:12px; }
-.auth-switch button { color:var(--purple); border:0; background:none; }
-.notice { font-size:12px; line-height:1.5; color:#6f55dd; background:#f4f0ff; padding:10px; border-radius:9px; margin-top:12px; }
 .toast { position:fixed; z-index:150; bottom:22px; left:50%; transform:translateX(-50%); max-width:90%; background:#27233a; color:white; border-radius:11px; padding:12px 17px; font-size:12px; display:none; box-shadow:var(--shadow); }
 .toast.show { display:block; }
 @media(max-width:700px) {
@@ -217,17 +202,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     </div>
 
     <button class="new-chat" id="newChat">＋ &nbsp; Nouvelle discussion</button>
-    <button class="side-button" id="signInButton">♙ &nbsp; Connexion / Compte</button>
-
+    
     <div class="side-label">RÉCENT</div>
     <div class="history" id="history">
-      <div style="padding:10px;color:#aaa;font-size:12px">Connectez-vous pour retrouver vos discussions.</div>
+      <div style="padding:10px;color:#aaa;font-size:12px">Vos discussions s'affichent ici.</div>
     </div>
 
     <div class="account">
-      <strong id="accountName">Mode invité</strong>
-      <span id="accountInfo">Les discussions ne sont pas encore synchronisées.</span>
-      <button class="side-button hidden" id="signOutButton" style="margin-top:12px">Déconnexion</button>
+      <strong>ASSTRA AI</strong>
+      <span>Version 1.5 Flash - Prêt</span>
     </div>
   </aside>
 
@@ -259,17 +242,16 @@ button:disabled { opacity: .55; cursor: not-allowed; }
           <div class="composer-bottom">
             <div class="tools">
               <div class="menu">
-                <button class="tool-btn" id="plusButton">＋ Ajouter</button>
+                <button class="tool-btn" id="plusButton" type="button">＋ Ajouter</button>
                 <div class="menu-pop" id="plusMenu">
-                  <button data-kind="image">🖼️ Ajouter une image</button>
-                  <button data-kind="camera">📷 Prendre une photo</button>
-                  <button data-kind="file">📄 Analyser un fichier</button>
-                  <button data-kind="generate">✨ Créer une image</button>
+                  <button data-kind="image" type="button">🖼️ Ajouter une image</button>
+                  <button data-kind="camera" type="button">📷 Prendre une photo</button>
+                  <button data-kind="file" type="button">📄 Analyser un fichier</button>
                 </div>
               </div>
-              <button class="tool-btn" id="clearButton">Effacer</button>
+              <button class="tool-btn" id="clearButton" type="button">Effacer</button>
             </div>
-            <button class="send-btn" id="sendButton" aria-label="Envoyer">↑</button>
+            <button class="send-btn" id="sendButton" type="button" aria-label="Envoyer">↑</button>
           </div>
         </div>
         <div class="hint">ASSTRA AI peut faire des erreurs. Vérifiez les informations importantes.</div>
@@ -282,81 +264,27 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
 <input class="hidden" type="file" id="fileInput" accept=".pdf,.txt,.docx,.doc">
 
-<div class="auth-screen" id="authScreen">
-  <div class="auth-card">
-    <div class="brand" style="padding:0 0 13px">
-      <div class="logo">✦</div>
-      <div>
-        <div class="brand-name">ASSTRA <span>AI</span></div>
-        <div class="brand-sub">VOTRE ASSISTANT INTELLIGENT</div>
-      </div>
-    </div>
-    <h2 id="authTitle">Bienvenue</h2>
-    <p id="authDescription">Connectez-vous pour sauvegarder et retrouver vos conversations.</p>
-    <form id="authForm">
-      <input id="authEmail" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
-      <input id="authPassword" type="password" placeholder="Mot de passe (6 caractères minimum)" autocomplete="current-password" minlength="6" required>
-      <button class="primary-btn" id="authSubmit" type="submit">Se connecter</button>
-    </form>
-    <div class="auth-switch">
-      <span id="authSwitchText">Pas encore de compte ?</span>
-      <button id="authSwitchButton" type="button">Créer un compte</button>
-    </div>
-    <div class="notice" id="authNotice">Vos conversations sont privées lorsque l'authentification et les règles de sécurité sont correctement configurées.</div>
-    <button class="side-button" id="closeAuth" style="margin-top:12px;justify-content:center">Fermer</button>
-  </div>
-</div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
 
 <script>
 "use strict";
 
-const SUPABASE_URL = "https://your-project-ref.supabase.co"; // حط الـ URL متاع مشروعك في Supabase هون
-const SUPABASE_ANON_KEY = "Sb_publishable_1PS613c8CAtLHs7G7ACTWA_ZDb_UcPQ";
 const API_URL = "/api/ai";
-
-const supabaseConfigured =
-  SUPABASE_URL.startsWith("https://") &&
-  !SUPABASE_URL.includes("your-project-ref") &&
-  !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE");
-
-const supabase = supabaseConfigured
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
-
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-}
-
 const $ = (id) => document.getElementById(id);
 
-let currentUser = null;
-let authSession = null;
-let authMode = "login";
 let currentConversation = null;
 let busy = false;
 let pendingImage = null;
 let pendingFileText = "";
 let pendingFileName = "";
-let conversations = [];
 
 function newId() {
   return crypto.randomUUID
     ? crypto.randomUUID()
     : Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, ch => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  }[ch]));
 }
 
 function showToast(message) {
@@ -389,8 +317,8 @@ function updateTitle() {
 function renderMarkdown(text) {
   const raw = window.marked
     ? marked.parse(String(text || ""), { breaks: true })
-    : escapeHtml(text).replace(/\n/g, "<br>");
-  return window.DOMPurify ? DOMPurify.sanitize(raw) : escapeHtml(text);
+    : String(text || "").replace(/\n/g, "<br>");
+  return window.DOMPurify ? DOMPurify.sanitize(raw) : raw;
 }
 
 function renderMessages() {
@@ -403,29 +331,8 @@ function renderMessages() {
     welcome.innerHTML = `
       <div class="welcome-logo">✦</div>
       <h1>Bonjour, je suis <span>ASSTRA AI</span></h1>
-      <p>Votre assistant intelligent. Posez vos questions, envoyez une image ou partagez un document pour commencer.</p>
-      <div class="suggestions">
-        <button class="suggestion" data-prompt="Explique-moi ce sujet étape par étape.">
-          <b>✧ Comprendre un sujet</b><small>Des explications simples et détaillées</small>
-        </button>
-        <button class="suggestion" data-prompt="Analyse cette image en détail et explique-moi ce que tu observes.">
-          <b>▧ Analyser une image</b><small>Observer les détails et répondre aux questions</small>
-        </button>
-        <button class="suggestion" data-prompt="Aide-moi à résoudre cet exercice étape par étape.">
-          <b>⌘ Résoudre un exercice</b><small>Apprendre avec des étapes claires</small>
-        </button>
-        <button class="suggestion" data-prompt="Aide-moi à écrire et améliorer mon code.">
-          <b>⌁ Programmer</b><small>Comprendre et corriger du code</small>
-        </button>
-      </div>`;
+      <p>Votre assistant intelligent. Posez vos questions, envoyez une image ou partagez un document pour commencer.</p>`;
     root.appendChild(welcome);
-    welcome.querySelectorAll("[data-prompt]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        $("prompt").value = btn.dataset.prompt;
-        $("prompt").focus();
-        resizePrompt();
-      });
-    });
     return;
   }
 
@@ -445,7 +352,6 @@ function renderMessages() {
       const img = document.createElement("img");
       img.className = "attachment";
       img.src = message.image;
-      img.alt = "Image envoyée";
       bubble.appendChild(img);
     }
 
@@ -505,7 +411,6 @@ function displayAttachment() {
   if (pendingImage) {
     const img = document.createElement("img");
     img.src = pendingImage;
-    img.alt = "Aperçu de l'image";
     root.appendChild(img);
   } else if (pendingFileName) {
     root.textContent = "📄 " + pendingFileName;
@@ -523,116 +428,6 @@ function dataUrlFromFile(file) {
   });
 }
 
-async function readDocument(file) {
-  const name = file.name.toLowerCase();
-  if (file.size > 12 * 1024 * 1024) throw new Error("Le fichier dépasse 12 Mo.");
-
-  if (name.endsWith(".txt")) return await file.text();
-
-  if (name.endsWith(".pdf")) {
-    if (!window.pdfjsLib) throw new Error("Le lecteur PDF n'est pas disponible.");
-    const buffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-    let text = "";
-    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
-      const page = await pdf.getPage(pageNo);
-      const content = await page.getTextContent();
-      text += "\n" + content.items.map(item => item.str).join(" ");
-      if (text.length > 60000) break;
-    }
-    return text.slice(0, 60000);
-  }
-
-  if (name.endsWith(".docx")) {
-    if (!window.mammoth) throw new Error("Le lecteur Word n'est pas disponible.");
-    const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-    return result.value.slice(0, 60000);
-  }
-
-  throw new Error("Format non pris en charge.");
-}
-
-function makeTitle(text) {
-  const cleaned = String(text || "").replace(/\s+/g, " ").trim();
-  return cleaned ? cleaned.slice(0, 48) : "Nouvelle discussion";
-}
-
-async function apiRequest(payload) {
-  const headers = { "Content-Type": "application/json" };
-  if (authSession?.access_token) {
-    headers.Authorization = "Bearer " + authSession.access_token;
-  }
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload)
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Erreur du serveur.");
-  return data;
-}
-
-async function saveConversation() {
-  if (!currentUser || !currentConversation) return;
-  try {
-    await apiRequest({
-      action: "save",
-      conversationId: currentConversation.id,
-      title: currentConversation.title,
-      messages: currentConversation.messages
-    });
-  } catch (error) {
-    console.error("Save error:", error);
-  }
-}
-
-async function loadConversationList() {
-  if (!currentUser) {
-    $("history").innerHTML = '<div style="padding:10px;color:#aaa;font-size:12px">Connectez-vous pour retrouver vos discussions.</div>';
-    return;
-  }
-  try {
-    const result = await apiRequest({ action: "list" });
-    conversations = result.conversations || [];
-    $("history").innerHTML = "";
-    if (!conversations.length) {
-      $("history").innerHTML = '<div style="padding:10px;color:#aaa;font-size:12px">Aucune discussion.</div>';
-      return;
-    }
-    conversations.forEach(c => {
-      const btn = document.createElement("button");
-      btn.className = "history-item" + (currentConversation?.id === c.id ? " active" : "");
-      btn.innerHTML = '<span>◷</span><span class="history-title"></span>';
-      btn.querySelector(".history-title").textContent = c.title || "Discussion";
-      btn.addEventListener("click", () => openConversation(c.id));
-      $("history").appendChild(btn);
-    });
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-async function openConversation(id) {
-  try {
-    const res = await apiRequest({ action: "load", conversationId: id });
-    const c = res.conversation;
-    currentConversation = {
-      id: c.id,
-      title: c.title || "Discussion",
-      messages: Array.isArray(c.messages) ? c.messages : [],
-      updated_at: c.updated_at
-    };
-    updateTitle();
-    renderMessages();
-    await loadConversationList();
-    $("sidebar").classList.remove("open");
-  } catch (e) {
-    showToast("Erreur ouverture: " + e.message);
-  }
-}
-
 async function sendMessage() {
   if (busy) return;
   const promptText = $("prompt").value.trim();
@@ -640,17 +435,12 @@ async function sendMessage() {
     $("prompt").focus();
     return;
   }
-  if (!currentUser) {
-    showToast("Connecte-toi pour utiliser l'assistant.");
-    openAuth();
-    return;
-  }
 
   const conversation = ensureConversation();
   const displayText = promptText || (pendingImage ? "Analyse cette image." : "Analyse ce document.");
 
   if (!conversation.messages.length) {
-    conversation.title = makeTitle(displayText);
+    conversation.title = displayText.slice(0, 30);
     updateTitle();
   }
 
@@ -672,23 +462,25 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const result = await apiRequest({
-      messages: conversation.messages,
-      image: imageToSend || undefined,
-      title: conversation.title
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: conversation.messages,
+        image: imageToSend || undefined,
+        title: conversation.title
+      })
     });
 
-    const reply = result.choices?.[0]?.message?.content;
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Erreur serveur");
+
+    const reply = data.choices?.[0]?.message?.content;
     if (!reply) throw new Error("Pas de réponse du modèle.");
 
     conversation.messages.push({ role: "assistant", content: reply });
-    conversation.updated_at = new Date().toISOString();
-
     removeTyping();
     renderMessages();
-    updateTitle();
-    await saveConversation();
-    await loadConversationList();
   } catch (error) {
     removeTyping();
     conversation.messages.push({
@@ -703,87 +495,33 @@ async function sendMessage() {
   }
 }
 
-function openAuth() { $("authScreen").classList.add("show"); }
-function closeAuth() { $("authScreen").classList.remove("show"); }
-
-function setAuthMode(mode) {
-  authMode = mode;
-  const isLogin = mode === "login";
-  $("authTitle").textContent = isLogin ? "Bienvenue" : "Créer un compte";
-  $("authSubmit").textContent = isLogin ? "Se connecter" : "Créer mon compte";
-  $("authSwitchText").textContent = isLogin ? "Pas encore de compte ?" : "Déjà un compte ?";
-  $("authSwitchButton").textContent = isLogin ? "Créer un compte" : "Se connecter";
-}
-
-$("authSwitchButton").addEventListener("click", () => setAuthMode(authMode === "login" ? "signup" : "login"));
-
-$("authForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  if (!supabase) return showToast("Supabase non configuré.");
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-  $("authSubmit").disabled = true;
-
-  try {
-    const res = authMode === "login"
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
-    if (res.error) throw res.error;
-    authSession = res.data.session;
-    currentUser = res.data.user;
-    closeAuth();
-    await onAuthChanged();
-    showToast("Connecté !");
-  } catch (err) {
-    showToast(err.message);
-  } finally {
-    $("authSubmit").disabled = false;
-  }
-});
-
-async function onAuthChanged() {
-  $("accountName").textContent = currentUser?.email || "Mode invité";
-  $("signInButton").classList.toggle("hidden", !!currentUser);
-  $("signOutButton").classList.toggle("hidden", !currentUser);
-  if (currentUser) await loadConversationList();
-}
-
-$("signOutButton").addEventListener("click", async () => {
-  if (supabase) await supabase.auth.signOut();
-  currentUser = null;
-  authSession = null;
-  currentConversation = null;
-  renderMessages();
-  updateTitle();
-  await onAuthChanged();
-  showToast("Déconnecté.");
-});
-
-$("signInButton").addEventListener("click", openAuth);
-$("closeAuth").addEventListener("click", closeAuth);
+// Événements pour les boutons
+$("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+$("sendButton").addEventListener("click", sendMessage);
 $("newChat").addEventListener("click", () => {
   currentConversation = makeConversation();
   clearAttachment();
   $("prompt").value = "";
   renderMessages();
   updateTitle();
-  loadConversationList();
   $("sidebar").classList.remove("open");
 });
 
-$("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
-$("sendButton").addEventListener("click", sendMessage);
 $("prompt").addEventListener("input", resizePrompt);
 $("prompt").addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-$("plusButton").addEventListener("click", e => {
+// Menu Plus
+$("plusButton").addEventListener("click", (e) => {
   e.stopPropagation();
   $("plusMenu").classList.toggle("open");
 });
-document.addEventListener("click", e => {
-  if (!$("plusMenu").contains(e.target)) $("plusMenu").classList.remove("open");
+
+document.addEventListener("click", (e) => {
+  if (!$("plusMenu").contains(e.target) && e.target !== $("plusButton")) {
+    $("plusMenu").classList.remove("open");
+  }
 });
 
 $("plusMenu").querySelectorAll("[data-kind]").forEach(btn => {
@@ -804,31 +542,14 @@ async function handleImageFile(file) {
 
 $("imageInput").addEventListener("change", e => handleImageFile(e.target.files[0]));
 $("cameraInput").addEventListener("change", e => handleImageFile(e.target.files[0]));
-$("fileInput").addEventListener("change", async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  pendingFileText = await readDocument(f);
-  pendingFileName = f.name;
-  displayAttachment();
-});
 
 $("removeAttachment").addEventListener("click", clearAttachment);
 $("clearButton").addEventListener("click", () => { $("prompt").value = ""; clearAttachment(); resizePrompt(); });
 
-async function init() {
+function init() {
   currentConversation = makeConversation();
   renderMessages();
   updateTitle();
-  if (!supabase) return;
-  const { data } = await supabase.auth.getSession();
-  authSession = data.session;
-  currentUser = data.session?.user || null;
-  await onAuthChanged();
-  supabase.auth.onAuthStateChange((_, session) => {
-    authSession = session;
-    currentUser = session?.user || null;
-    setTimeout(onAuthChanged, 0);
-  });
 }
 init();
 </script>
