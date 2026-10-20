@@ -1,12 +1,10 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { messages, image, title } = req.body;
@@ -22,9 +20,7 @@ export default async function handler(req, res) {
 
     const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.";
 
-    const formattedMessages = [
-      { role: "system", content: systemInstruction }
-    ];
+    const formattedMessages = [{ role: "system", content: systemInstruction }];
 
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
@@ -51,14 +47,14 @@ export default async function handler(req, res) {
       formattedMessages.push({
         role: "user",
         content: [
-          { type: "text", text: userText || "Analyse cette image avec un génie absolu et réponds avec précision." },
+          { type: "text", text: userText || "Analyse cette image." },
           { type: "image_url", image_url: { url: image } }
         ]
       });
     } else {
       formattedMessages.push({
         role: "user",
-        content: userText || "Analyse cette demande avec un génie absolu."
+        content: userText || "Analyse cette demande."
       });
     }
 
@@ -71,27 +67,24 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.2-11b-vision-instruct", 
+        model: "meta-llama/llama-3.2-11b-vision-instruct",
         messages: formattedMessages,
         temperature: 0.4
       })
     });
 
     const data = await apiResponse.json();
+    if (!apiResponse.ok) throw new Error(data.error?.message || "Erreur OpenRouter");
 
-    if (!apiResponse.ok) {
-      throw new Error(data.error?.message || "Erreur de l'API OpenRouter");
-    }
-
-    const aiReply = data.choices?.[0]?.message?.content || "Je n'ai pas pu générer de réponse.";
+    const aiReply = data.choices?.[0]?.message?.content || "Pas de réponse.";
 
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: aiReply } }],
-      title: title || "Discussion Intelligente"
+      title: title || "Discussion"
     });
 
   } catch (error) {
-    console.error("Erreur API Details:", error);
-    return res.status(500).json({ error: error.message || "Erreur interne du serveur." });
+    console.error("Erreur:", error);
+    return res.status(500).json({ error: error.message || "Erreur serveur." });
   }
 }
