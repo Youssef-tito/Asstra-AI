@@ -1,7 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -14,17 +10,22 @@ export default async function handler(req, res) {
 
   try {
     const { messages, image, title } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "GEMINI_API_KEY n'est pas configurée dans Vercel." });
+    }
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "Messages are required" });
     }
 
-    const systemInstruction = `Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.`;
+    const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.";
 
-    // Construction propre du contenu pour Gemini
+    // Préparation des contenus pour l'API Gemini REST
     const contents = [];
 
-    // Ajouter l'historique des messages précédents
+    // Ajout de l'historique
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'model' : 'user';
@@ -35,14 +36,14 @@ export default async function handler(req, res) {
         const matches = m.image.match(/^data:(.+);base64,(.+)$/);
         if (matches) {
           parts.push({
-            inlineData: { mimeType: matches[1], data: matches[2] }
+            inline_data: { mime_type: matches[1], data: matches[2] }
           });
         }
       }
       contents.push({ role, parts });
     }
 
-    // Gérer le message et l'image actuelle
+    // Message actuel et image éventuelle
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
     const currentParts = [];
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
       const matches = image.match(/^data:(.+);base64,(.+)$/);
       if (matches) {
         currentParts.push({
-          inlineData: { mimeType: matches[1], data: matches[2] }
+          inline_data: { mime_type: matches[1], data: matches[2] }
         });
       }
     }
@@ -62,17 +63,27 @@ export default async function handler(req, res) {
 
     contents.push({ role: 'user', parts: currentParts });
 
-    // Appel direct et ultra-stable de generateContent
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: contents,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.4,
+    // Appel direct via l'API REST de Gemini 1.5 Flash
+    const apiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemInstruction }] },
+          contents: contents,
+          generationConfig: { temperature: 0.4 }
+        })
       }
-    });
+    );
 
-    const aiReply = response.text || "Je n'ai pas pu générer de réponse.";
+    const data = await apiResponse.json();
+
+    if (!apiResponse.ok) {
+      throw new Error(data.error?.message || "Erreur de l'API Gemini");
+    }
+
+    const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Je n'ai pas pu générer de réponse.";
 
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: aiReply } }],
