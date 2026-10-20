@@ -42,7 +42,14 @@ module.exports = async function handler(req, res) {
 
     messages.push({ role: "user", content: prompt });
 
-    const modelsToTry = ["deepseek/deepseek-r1:free", "meta-llama/llama-3.3-70b-instruct:free"];
+    // Active 100% Free models on OpenRouter
+    const modelsToTry = [
+      "deepseek/deepseek-r1:free",
+      "deepseek/deepseek-chat:free",
+      "meta-llama/llama-3.1-8b-instruct:free",
+      "mistralai/mistral-7b-instruct:free"
+    ];
+
     let lastError = null;
 
     for (const model of modelsToTry) {
