@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
-  // 1. GET: Fetch Conversations from Supabase REST API
+  // 1. GET: Fetch Conversations from Supabase
   if (req.method === 'GET') {
     if (!supabaseUrl || !supabaseKey) {
       return res.status(200).json({ conversations: [] });
@@ -28,9 +28,7 @@ export default async function handler(req, res) {
         }
       });
 
-      if (!response.ok) {
-        return res.status(200).json({ conversations: [] });
-      }
+      if (!response.ok) return res.status(200).json({ conversations: [] });
 
       const data = await response.json();
       return res.status(200).json({ conversations: data });
@@ -39,7 +37,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. POST: Chat with AI & Save/Update Supabase
+  // 2. POST: Chat & Smart Title Generation
   if (req.method === 'POST') {
     try {
       const { messages, conversationId, title } = req.body;
@@ -52,12 +50,10 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "OPENROUTER_API_KEY missing" });
       }
 
-      // Updated models list with working free endpoints
       const models = [
         "openrouter/free",
-        "google/gemini-2.0-flash-exp:free",
-        "qwen/qwen3.8-27b:free",
-        "cohere/north-mini-code:free"
+        "deepseek/deepseek-r1:free",
+        "google/gemini-2.0-flash-exp:free"
       ];
 
       let replyContent = null;
@@ -88,9 +84,6 @@ export default async function handler(req, res) {
               replyContent = aiData.choices[0].message.content;
               break;
             }
-          } else {
-            const errBody = await aiRes.text();
-            lastError = new Error(errBody);
           }
         } catch (err) {
           lastError = err;
@@ -98,14 +91,43 @@ export default async function handler(req, res) {
       }
 
       if (!replyContent) {
-        return res.status(502).json({ error: "Failed to get AI response", details: lastError?.message });
+        return res.status(502).json({ error: "Failed to get AI response" });
       }
 
-      // Update or Insert into Supabase REST API
+      // Generate a Smart Title using AI if it's a new conversation
+      let generatedTitle = title;
+      if (!conversationId || conversationId.length < 20 || title === "Nouvelle discussion") {
+        try {
+          const titleRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openRouterKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "openrouter/free",
+              messages: [
+                { role: "system", content: "Génère un titre très court (3 à 6 mots maximum) en français qui résume parfaitement la question de l'utilisateur. Réponds uniquement par le titre sans guillemets ni ponctuation." },
+                { role: "user", content: messages[0]?.content || messages[0]?.text || "" }
+              ]
+            })
+          });
+
+          if (titleRes.ok) {
+            const titleData = await titleRes.json();
+            if (titleData.choices && titleData.choices[0]) {
+              generatedTitle = titleData.choices[0].message.content.trim();
+            }
+          }
+        } catch (e) {
+          generatedTitle = messages[0]?.content?.slice(0, 30) || "Discussion";
+        }
+      }
+
+      // Save or Update Supabase
       let updatedId = conversationId;
       if (supabaseUrl && supabaseKey) {
         const updatedMessages = [...messages, { role: "assistant", content: replyContent }];
-        const convTitle = title || messages[0]?.content?.slice(0, 30) || "Nouvelle discussion";
 
         if (conversationId && conversationId.length > 20) {
           await fetch(`${supabaseUrl}/rest/v1/conversations?id=eq.${conversationId}`, {
@@ -117,6 +139,7 @@ export default async function handler(req, res) {
               'Prefer': 'return=minimal'
             },
             body: JSON.stringify({
+              title: generatedTitle,
               messages: updatedMessages,
               updated_at: new Date().toISOString()
             })
@@ -131,7 +154,7 @@ export default async function handler(req, res) {
               'Prefer': 'return=representation'
             },
             body: JSON.stringify({
-              title: convTitle,
+              title: generatedTitle,
               messages: updatedMessages
             })
           });
@@ -147,11 +170,12 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         choices: [{ message: { role: "assistant", content: replyContent } }],
-        conversationId: updatedId
+        conversationId: updatedId,
+        title: generatedTitle
       });
 
     } catch (error) {
-      return res.status(500).json({ error: "Internal Server Error", details: error.message });
+      return res.status(500).json({ error: "Internal Server Error" });
     }
   }
 }
