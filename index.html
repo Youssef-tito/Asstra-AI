@@ -664,18 +664,17 @@ async function loadConversationsFromSupabase() {
         updatedAt: new Date(conv.updated_at || Date.now()).getTime()
       }));
       conversations.sort((a, b) => b.updatedAt - a.updatedAt);
-      if (conversations.length > 0 && !activeConversationId) {
-        activeConversationId = conversations[0].id;
-      }
     }
   } catch (err) {
     console.warn("Erreur chargement Supabase:", err);
   }
+
   if (conversations.length === 0) {
     newConversation(false);
-  } else {
-    saveAndRender();
+  } else if (!activeConversationId) {
+    activeConversationId = conversations[0].id;
   }
+  saveAndRender();
 }
 
 function closeSidebar() {
@@ -862,7 +861,7 @@ function renderChat() {
   chatMessages.replaceChildren();
   const c = getActive();
 
-  if (!c || c.messages.length === 0) {
+  if (!c || !c.messages || c.messages.length === 0) {
     addWelcome();
     return;
   }
@@ -945,7 +944,7 @@ function openFeature(name){
     showFeature("Images IA", `<p class="feature-description">Décris l’image que tu veux créer. ASSTRA AI préparera une demande de génération dans la conversation.</p><input class="feature-input" id="imagePromptFeature" placeholder="Ex. logo futuriste violet pour ASSTRA AI"><button class="feature-primary" id="startImageFeature">Créer une image ✨</button>`);
     $("startImageFeature").onclick=()=>{const v=$("imagePromptFeature").value.trim();if(!v)return;closeFeature();if(!getActive())newConversation();userInput.value="Crée une image : "+v;resizeInput();sendMessage();};
   } else if(name === "library"){
-    const imgs=[]; conversations.forEach(c=>c.messages.forEach(m=>{if(m.image)imgs.push({src:m.image,alt:m.text||"Image ASSTRA AI"});}));
+    const imgs=[]; conversations.forEach(c=>(c.messages||[]).forEach(m=>{if(m.image)imgs.push({src:m.image,alt:m.text||"Image ASSTRA AI"});}));
     const html=imgs.length?`<p class="feature-description">Images trouvées dans tes conversations.</p><div class="library-grid">${imgs.map((im,i)=>`<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>`:`<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées apparaîtront ici.</div>`;
     showFeature("Bibliothèque",html);
   } else if(name === "planning"){
@@ -999,7 +998,7 @@ async function sendMessage() {
   }
 
   let c = getActive();
-  if (!c) {
+  if (!c || c.messages.length > 0) {
     c = { id: makeId(), title: "Nouvelle discussion", messages: [], updatedAt: Date.now() };
     conversations.unshift(c);
     activeConversationId = c.id;
@@ -1018,7 +1017,6 @@ async function sendMessage() {
   showTyping();
 
   try {
-    // Format messages for backend API
     const formattedMessages = c.messages.map(m => ({
       role: m.role === 'model' ? 'assistant' : m.role,
       content: m.text
