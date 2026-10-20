@@ -4,7 +4,9 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
     const { messages, image, title } = req.body;
@@ -22,6 +24,7 @@ export default async function handler(req, res) {
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
+    // Reconstruction propre de l'historique de conversation
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
@@ -40,6 +43,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // Gestion du dernier message et de l'image actuelle
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -47,7 +51,7 @@ export default async function handler(req, res) {
       formattedMessages.push({
         role: "user",
         content: [
-          { type: "text", text: userText || "Analyse cette image." },
+          { type: "text", text: userText || "Analyse cette image avec précision." },
           { type: "image_url", image_url: { url: image } }
         ]
       });
@@ -58,6 +62,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Appel à OpenRouter avec un modèle multimodal rapide et stable
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -67,16 +72,19 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.2-11b-vision-instruct",
+        model: "google/gemini-2.0-flash-exp:free", // Modèle ultra-rapide et stable avec support de la vision
         messages: formattedMessages,
         temperature: 0.4
       })
     });
 
     const data = await apiResponse.json();
-    if (!apiResponse.ok) throw new Error(data.error?.message || "Erreur OpenRouter");
 
-    const aiReply = data.choices?.[0]?.message?.content || "Pas de réponse.";
+    if (!apiResponse.ok) {
+      throw new Error(data.error?.message || "Erreur lors de la communication avec OpenRouter.");
+    }
+
+    const aiReply = data.choices?.[0]?.message?.content || "Désolé, je n'ai pas pu générer de réponse.";
 
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: aiReply } }],
@@ -84,7 +92,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Erreur:", error);
-    return res.status(500).json({ error: error.message || "Erreur serveur." });
+    console.error("Erreur Backend API:", error);
+    return res.status(500).json({ error: error.message || "Erreur interne du serveur." });
   }
 }
