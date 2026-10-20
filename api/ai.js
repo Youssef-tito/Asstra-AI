@@ -52,11 +52,12 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "OPENROUTER_API_KEY missing" });
       }
 
-      // OpenRouter AI Call
+      // Updated models list with working free endpoints
       const models = [
-        "openrouter/auto",
-        "deepseek/deepseek-r1:free",
-        "google/gemini-2.0-flash-exp:free"
+        "openrouter/free",
+        "google/gemini-2.0-flash-exp:free",
+        "qwen/qwen3.8-27b:free",
+        "cohere/north-mini-code:free"
       ];
 
       let replyContent = null;
@@ -87,6 +88,9 @@ export default async function handler(req, res) {
               replyContent = aiData.choices[0].message.content;
               break;
             }
+          } else {
+            const errBody = await aiRes.text();
+            lastError = new Error(errBody);
           }
         } catch (err) {
           lastError = err;
