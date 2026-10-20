@@ -8,7 +8,9 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
     const { messages, image, title } = req.body;
@@ -19,14 +21,16 @@ export default async function handler(req, res) {
 
     const systemInstruction = `Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.`;
 
-    // 1. Nettoyage et construction sécurisée de l'historique pour éviter tout crash JSON
-    const formattedHistory = [];
+    // Construction propre du contenu pour Gemini
+    const contents = [];
+
+    // Ajouter l'historique des messages précédents
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'model' : 'user';
-      const textPart = m.content || m.text || "";
-      const parts = [{ text: textPart }];
-
+      const text = m.content || m.text || "";
+      
+      const parts = [{ text: text }];
       if (m.image && typeof m.image === 'string' && m.image.startsWith('data:image')) {
         const matches = m.image.match(/^data:(.+);base64,(.+)$/);
         if (matches) {
@@ -35,10 +39,10 @@ export default async function handler(req, res) {
           });
         }
       }
-      formattedHistory.push({ role, parts });
+      contents.push({ role, parts });
     }
 
-    // 2. Gestion du message actuel
+    // Gérer le message et l'image actuelle
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
     const currentParts = [];
@@ -56,22 +60,19 @@ export default async function handler(req, res) {
       text: userText || "Analyse cette image avec un génie absolu et réponds avec précision."
     });
 
-    // 3. Appel de l'API Gemini
-    const chat = ai.chats.create({
+    contents.push({ role: 'user', parts: currentParts });
+
+    // Appel direct et ultra-stable de generateContent
+    const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',
+      contents: contents,
       config: {
         systemInstruction: systemInstruction,
         temperature: 0.4,
-      },
-      history: formattedHistory
+      }
     });
 
-    const result = await chat.sendMessage({
-      role: 'user',
-      parts: currentParts
-    });
-
-    const aiReply = result.text || "Je n'ai pas pu générer de réponse.";
+    const aiReply = response.text || "Je n'ai pas pu générer de réponse.";
 
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: aiReply } }],
@@ -80,7 +81,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("Erreur API Details:", error);
-    // On renvoie un objet JSON propre même en cas d'erreur pour ne pas casser le front-end
     return res.status(500).json({ error: error.message || "Erreur interne du serveur." });
   }
 }
