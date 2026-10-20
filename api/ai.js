@@ -42,12 +42,11 @@ module.exports = async function handler(req, res) {
 
     messages.push({ role: "user", content: prompt });
 
-    // Active 100% Free models on OpenRouter
+    // OpenRouter Auto-Routing for active free models
     const modelsToTry = [
       "deepseek/deepseek-r1:free",
-      "deepseek/deepseek-chat:free",
-      "meta-llama/llama-3.1-8b-instruct:free",
-      "mistralai/mistral-7b-instruct:free"
+      "google/gemini-2.0-flash-exp:free",
+      "openrouter/auto"
     ];
 
     let lastError = null;
