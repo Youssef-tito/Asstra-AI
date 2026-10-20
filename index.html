@@ -10,14 +10,8 @@
 <meta name="robots" content="index, follow">
 <title>ASSTRA AI — Votre assistant intelligent</title>
 
-<!-- Favicon (El-Logo elli yadhar f-Google w-el-navigateur) -->
+<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z' fill='%236857f5'/><circle cx='36' cy='10' r='3' fill='%23a855f7'/></svg>">
-
-<!-- Open Graph / Meta Facebook/Google -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="ASSTRA AI — Votre assistant intelligent">
-<meta property="og:description" content="Votre espace intelligent pour apprendre, créer, résoudre des problèmes et explorer de nouvelles idées.">
-<meta property="og:site_name" content="ASSTRA AI">
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -275,12 +269,6 @@ button:focus-visible, textarea:focus-visible {
   .suggestions { grid-template-columns: 1fr; }
 }
 
-
-/* ==========================================================
-   ASSTRA AI — Premium visual layer
-   Added styles only: existing HTML, JavaScript and API calls
-   are intentionally left unchanged.
-   ========================================================== */
 :root {
   --primary: #7055f7;
   --primary-dark: #5436dc;
@@ -489,37 +477,6 @@ button { -webkit-tap-highlight-color: transparent; }
 .typing span { box-shadow: 0 0 8px rgba(149,133,245,.28); }
 button:focus-visible, textarea:focus-visible { outline-color: #9b88ff; }
 
-@media (min-width: 1200px) {
-  .chat { padding-top: 34px; }
-  .welcome { margin-top: clamp(55px, 9vh, 100px); }
-  .suggestion { min-height: 124px; padding: 19px; }
-}
-@media (max-width: 768px) {
-  .logo::before, .welcome-logo::before { filter: blur(9px); }
-  .welcome { margin-top: 5vh; }
-  .welcome-logo { width: 64px; height: 64px; margin-bottom: 21px; }
-  .welcome h1 { font-size: clamp(25px, 6vw, 32px); letter-spacing: -.8px; }
-  .welcome p { max-width: 390px; line-height: 1.75; }
-  .suggestion { min-height: 110px; border-radius: 15px; }
-  .composer { gap: 6px; padding: 7px; }
-  .icon-btn { width: 35px; height: 35px; }
-  .send-btn { width: 37px; height: 37px; }
-}
-@media (max-width: 420px) {
-  .suggestions { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .suggestion { padding: 11px; min-height: 116px; }
-  .suggestion-icon { width: 30px; height: 30px; margin-bottom: 9px; }
-  .suggestion-title { font-size: 11.5px; }
-  .suggestion-sub { font-size: 10px; }
-  .online { font-size: 10px; }
-  .header-left { gap: 8px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
-}
-
-
-/* ASSTRA AI — ChatGPT-style functional sidebar */
 .sidebar-nav{display:flex;flex-direction:column;gap:5px;margin:18px 0 4px}
 .sidebar-nav button{display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:1px solid transparent;border-radius:11px;background:transparent;color:#49465e;text-align:left;font-size:13px;transition:background .18s,border-color .18s,transform .18s}
 .sidebar-nav button:hover{background:#f0edff;border-color:#e9e2ff;transform:translateX(2px)}
@@ -542,11 +499,7 @@ button:focus-visible, textarea:focus-visible { outline-color: #9b88ff; }
 .library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .library-grid img{width:100%;height:115px;object-fit:cover;border-radius:11px;border:1px solid #eee8f7}
 .library-empty{padding:25px 10px;text-align:center;color:#8c879e;font-size:13px;line-height:1.8}
-@media(max-width:768px){.sidebar-nav button{padding:11px}.feature-panel{padding:18px;border-radius:18px}.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-
-
-/* Modern search-style composer inspired by the reference */
 .composer-area { padding-top: 14px; }
 .composer-wrap { max-width: 845px; }
 .composer {
@@ -581,16 +534,6 @@ button:focus-visible, textarea:focus-visible { outline-color: #9b88ff; }
 .mic-minimal.recording { color: #e54865; background: #fff0f3; }
 .voice-btn { width: 40px; height: 40px; border-radius: 50%; font-size: 20px; }
 .disclaimer { margin-top: 10px; }
-@media(max-width: 560px) {
-  .composer { min-height: 59px; gap: 4px; padding: 6px 7px; }
-  .composer-plus { width: 30px; flex-basis: 30px; font-size: 25px; }
-  .analyze-btn { gap: 4px; padding: 8px 5px; font-size: 12px; }
-  .analyze-symbol { font-size: 16px; }
-  .mic-minimal { width: 29px; flex-basis: 29px; font-size: 20px; }
-  .voice-btn { width: 36px; height: 36px; }
-  .composer textarea { font-size: 14px; }
-}
-
 </style>
 </head>
 <body>
@@ -676,25 +619,12 @@ button:focus-visible, textarea:focus-visible { outline-color: #9b88ff; }
 <script>
 "use strict";
 
-const STORAGE_KEY = "asstra_ai_conversations_v5";
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 let conversations = [];
 let activeConversationId = null;
 let selectedImage = null;
 let isSending = false;
 let requestController = null;
 let recognition = null;
-
-try {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  if (Array.isArray(saved)) {
-    conversations = saved.filter(c =>
-      c && typeof c.id === "string" && Array.isArray(c.messages)
-    );
-  }
-} catch (error) {
-  console.warn("Impossible de lire l'historique local.");
-}
 
 const $ = id => document.getElementById(id);
 const chatMessages = $("chatMessages");
@@ -718,11 +648,33 @@ function getActive() {
   return conversations.find(c => c.id === activeConversationId);
 }
 
-function save() {
+async function loadConversationsFromSupabase() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
-  } catch (error) {
-    console.warn("Historique local plein ou indisponible.");
+    const res = await fetch('/api/ai');
+    const data = await res.json();
+    if (data.conversations && Array.isArray(data.conversations)) {
+      conversations = data.conversations.map(conv => ({
+        id: conv.id,
+        title: conv.title || "Nouvelle discussion",
+        messages: (conv.messages || []).map(m => ({
+          role: m.role === 'assistant' ? 'model' : m.role,
+          text: m.content || m.text || '',
+          image: m.image || null
+        })),
+        updatedAt: new Date(conv.updated_at || Date.now()).getTime()
+      }));
+      conversations.sort((a, b) => b.updatedAt - a.updatedAt);
+      if (conversations.length > 0 && !activeConversationId) {
+        activeConversationId = conversations[0].id;
+      }
+    }
+  } catch (err) {
+    console.warn("Erreur chargement Supabase:", err);
+  }
+  if (conversations.length === 0) {
+    newConversation(false);
+  } else {
+    saveAndRender();
   }
 }
 
@@ -738,7 +690,7 @@ function clearImage() {
   imagePreview.style.display = "none";
 }
 
-function newConversation() {
+function newConversation(render = true) {
   if (isSending) return;
   const c = {
     id: makeId(),
@@ -750,7 +702,7 @@ function newConversation() {
   activeConversationId = c.id;
   clearImage();
   closeSidebar();
-  saveAndRender();
+  if (render) saveAndRender();
   userInput.focus();
 }
 
@@ -770,20 +722,12 @@ function deleteConversation(id) {
     activeConversationId = conversations[0]?.id || null;
   }
   if (!activeConversationId) {
-    const c = {
-      id: makeId(),
-      title: "Nouvelle discussion",
-      messages: [],
-      updatedAt: Date.now()
-    };
-    conversations.unshift(c);
-    activeConversationId = c.id;
+    newConversation(false);
   }
   saveAndRender();
 }
 
 function saveAndRender() {
-  save();
   renderHistory();
   renderChat();
 }
@@ -954,17 +898,6 @@ function resizeInput() {
   userInput.style.height = Math.min(userInput.scrollHeight, 150) + "px";
 }
 
-function imageToPart(dataUrl) {
-  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\r\n]+)$/.exec(dataUrl);
-  if (!match) return null;
-  return {
-    inline_data: {
-      mime_type: match[1],
-      data: match[2].replace(/\s/g, "")
-    }
-  };
-}
-
 if (micBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
@@ -1013,24 +946,24 @@ function openFeature(name){
     $("startImageFeature").onclick=()=>{const v=$("imagePromptFeature").value.trim();if(!v)return;closeFeature();if(!getActive())newConversation();userInput.value="Crée une image : "+v;resizeInput();sendMessage();};
   } else if(name === "library"){
     const imgs=[]; conversations.forEach(c=>c.messages.forEach(m=>{if(m.image)imgs.push({src:m.image,alt:m.text||"Image ASSTRA AI"});}));
-    const html=imgs.length?`<p class="feature-description">Images trouvées dans tes conversations enregistrées sur cet appareil.</p><div class="library-grid">${imgs.map((im,i)=>`<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>`:`<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées dans tes conversations apparaîtront ici.</div>`;
+    const html=imgs.length?`<p class="feature-description">Images trouvées dans tes conversations.</p><div class="library-grid">${imgs.map((im,i)=>`<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>`:`<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées apparaîtront ici.</div>`;
     showFeature("Bibliothèque",html);
   } else if(name === "planning"){
     let plans=[];try{plans=JSON.parse(localStorage.getItem(PLAN_KEY)||"[]")}catch{}
-    showFeature("Planification",`<p class="feature-description">Crée des rappels simples enregistrés dans ce navigateur. Garde ce site ouvert pour consulter ta liste.</p><input class="feature-input" id="planText" placeholder="Ex. Réviser les maths"><input class="feature-input" id="planDate" type="datetime-local"><button class="feature-primary" id="addPlan">＋ Ajouter un rappel</button><div id="planList" style="margin-top:16px"></div>`);
+    showFeature("Planification",`<p class="feature-description">Crée des rappels simples enregistrés dans ce navigateur.</p><input class="feature-input" id="planText" placeholder="Ex. Réviser les maths"><input class="feature-input" id="planDate" type="datetime-local"><button class="feature-primary" id="addPlan">＋ Ajouter un rappel</button><div id="planList" style="margin-top:16px"></div>`);
     const draw=()=>{let a=[];try{a=JSON.parse(localStorage.getItem(PLAN_KEY)||"[]")}catch{};$("planList").innerHTML=a.length?a.map((p,i)=>`<div class="feature-action"><span>◷</span><span style="flex:1">${p.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}<small>${p.date?new Date(p.date).toLocaleString():"Sans date"}</small></span><button data-del-plan="${i}" style="border:0;background:transparent;color:#c65b77">×</button></div>`).join(""):`<p class="feature-description">Aucun rappel pour le moment.</p>`;$("planList").querySelectorAll("[data-del-plan]").forEach(b=>b.onclick=()=>{a.splice(Number(b.dataset.delPlan),1);localStorage.setItem(PLAN_KEY,JSON.stringify(a));draw();});};
     $("addPlan").onclick=()=>{const textVal=$("planText").value.trim();if(!textVal)return;plans.push({text:textVal,date:$("planDate").value});localStorage.setItem(PLAN_KEY,JSON.stringify(plans));$("planText").value="";$("planDate").value="";draw();};draw();
   } else if(name === "plugins"){
-    showFeature("Outils & plugins",`<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image<small>Préparer une demande d’image IA</small></span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image<small>Joindre une image à une question</small></span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation<small>Demander à l’assistant du code</small></span></button>`);
+    showFeature("Outils & plugins",`<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image</span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image</span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation</span></button>`);
     $("pluginImage").onclick=()=>openFeature("images");$("pluginAnalyze").onclick=()=>{closeFeature();$("imageBtn").click();userInput.focus();};$("pluginCode").onclick=()=>{closeFeature();userInput.value="Aide-moi à écrire et expliquer du code étape par étape.";resizeInput();userInput.focus();};
   } else if(name === "projects"){
-    showFeature("Projets",`<p class="feature-description">Organise ton travail en démarrant une discussion dédiée à ton projet.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI<small>Continuer le développement de ton assistant</small></span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet<small>Créer une discussion pour une nouvelle idée</small></span></button>`);
+    showFeature("Projets",`<p class="feature-description">Organise ton travail.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI</span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet</span></button>`);
     $("projectAsstra").onclick=()=>{closeFeature();userInput.value="Continuons à développer mon projet ASSTRA AI. Propose-moi les prochaines améliorations.";resizeInput();userInput.focus();};$("projectNew").onclick=()=>{closeFeature();newConversation();};
   } else if(name === "codex"){
-    showFeature("Codex · Assistant de code",`<p class="feature-description">Utilise l’assistant ASSTRA pour écrire, comprendre et corriger du code.</p><button class="feature-action" id="codexWrite"><span>⌘</span><span>Écrire du code<small>Créer une fonction ou une page web</small></span></button><button class="feature-action" id="codexFix"><span>⚙</span><span>Corriger un bug<small>Expliquer une erreur et chercher une solution</small></span></button>`);
+    showFeature("Codex · Assistant de code",`<p class="feature-description">Utilise l’assistant ASSTRA pour écrire et corriger du code.</p><button class="feature-action" id="codexWrite"><span>⌘</span><span>Écrire du code</span></button><button class="feature-action" id="codexFix"><span>⚙</span><span>Corriger un bug</span></button>`);
     $("codexWrite").onclick=()=>{closeFeature();userInput.value="Aide-moi à écrire du code propre et explique chaque étape.";resizeInput();userInput.focus();};$("codexFix").onclick=()=>{closeFeature();userInput.value="Aide-moi à déboguer ce code : ";resizeInput();userInput.focus();};
   } else {
-    showFeature("Plus d’options",`<button class="feature-action" id="moreNew"><span>＋</span><span>Nouvelle discussion<small>Démarrer une conversation</small></span></button><button class="feature-action" id="moreHistory"><span>◷</span><span>Discussions récentes<small>Retrouver tes conversations dans la barre latérale</small></span></button><p class="feature-description">Les conversations sont conservées localement dans ce navigateur.</p>`);
+    showFeature("Plus d’options",`<button class="feature-action" id="moreNew"><span>＋</span><span>Nouvelle discussion</span></button><button class="feature-action" id="moreHistory"><span>◷</span><span>Discussions récentes</span></button><p class="feature-description">Les conversations sont synchronisées automatiquement.</p>`);
     $("moreNew").onclick=()=>{closeFeature();newConversation();};$("moreHistory").onclick=closeFeature;
   }
 }
@@ -1043,46 +976,6 @@ $("menuBtn").addEventListener("click", () => {
 });
 overlay.addEventListener("click", closeSidebar);
 
-$("imageBtn").addEventListener("click", () => imageInput.click());
-$("removeImageBtn").addEventListener("click", clearImage);
-
-imageInput.addEventListener("change", event => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-    alert("Choisissez une image JPG, PNG ou WEBP.");
-    clearImage();
-    return;
-  }
-  if (file.size > MAX_IMAGE_SIZE) {
-    alert("L'image est trop grande. Choisissez une image de 5 Mo maximum.");
-    clearImage();
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    selectedImage = reader.result;
-    previewImg.src = selectedImage;
-    imagePreview.style.display = "flex";
-  };
-  reader.onerror = () => alert("Impossible de lire cette image.");
-  reader.readAsDataURL(file);
-});
-
-userInput.addEventListener("input", resizeInput);
-
-userInput.addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-    event.preventDefault();
-    sendMessage();
-  }
-});
-
-sendBtn.addEventListener("click", sendMessage);
-
-// Analyse mode: adds a clear analysis instruction while preserving the existing API route.
 let analyzeMode = false;
 const analyzeBtn = $("analyzeBtn");
 analyzeBtn.addEventListener("click", () => {
@@ -1097,180 +990,84 @@ async function sendMessage() {
   if (isSending) return;
 
   let text = userInput.value.trim();
-  if (!text && !selectedImage) return;
+  if (!text) return;
   if (analyzeMode) {
-    text = "Analyse cette demande avec méthode, détaille les points importants, les problèmes éventuels et les recommandations :\n\n" + (text || "Analyse l’image jointe.");
+    text = "Analyse cette demande avec méthode, détaille les points importants :\n\n" + text;
     analyzeMode = false;
     analyzeBtn.setAttribute("aria-pressed", "false");
     userInput.placeholder = "Poser une question";
   }
 
-  const lowerText = text.toLowerCase();
-  if (lowerText.includes("انشئ صورة") || lowerText.includes("crée une image") || lowerText.includes("génère une image") || lowerText.includes("رسم لي")) {
-    let c = getActive();
-    if (!c) {
-      c = { id: makeId(), title: "Nouvelle discussion", messages: [], updatedAt: Date.now() };
-      conversations.unshift(c);
-      activeConversationId = c.id;
-    }
-    const userMessage = { role: "user", text, image: null };
-    c.messages.push(userMessage);
-    if (c.messages.length === 1) c.title = text.slice(0, 42);
-    
-    userInput.value = "";
-    userInput.style.height = "auto";
-    saveAndRender();
-
-    showTyping();
-    setTimeout(() => {
-      removeTyping();
-      const promptClean = encodeURIComponent(text);
-      const generatedImageUrl = `https://image.pollinations.ai/prompt/${promptClean}`;
-      c.messages.push({
-        role: "model",
-        text: "✨ **إليك الصورة التي طلبتها :**",
-        image: generatedImageUrl
-      });
-      c.updatedAt = Date.now();
-      saveAndRender();
-    }, 1200);
-    return;
-  }
-
   let c = getActive();
   if (!c) {
-    c = {
-      id: makeId(),
-      title: "Nouvelle discussion",
-      messages: [],
-      updatedAt: Date.now()
-    };
+    c = { id: makeId(), title: "Nouvelle discussion", messages: [], updatedAt: Date.now() };
     conversations.unshift(c);
     activeConversationId = c.id;
   }
 
-  const imgToSend = selectedImage;
-  const imagePart = imgToSend ? imageToPart(imgToSend) : null;
+  c.messages.push({ role: "user", text: text, image: null });
+  if (c.messages.length === 1) c.title = text.slice(0, 42);
 
-  if (imgToSend && !imagePart) {
-    alert("Format d'image non valide.");
-    return;
-  }
-
-  const userMessage = {
-    role: "user",
-    text,
-    image: imgToSend || null
-  };
-
-  const previousMessages = c.messages.slice(-20);
-
-  c.messages.push(userMessage);
-
-  if (c.messages.length === 1) {
-    c.title = (text || "Analyse d'image").slice(0, 42);
-  }
-
-  c.updatedAt = Date.now();
   userInput.value = "";
   userInput.style.height = "auto";
-  clearImage();
-
   saveAndRender();
 
   isSending = true;
   sendBtn.disabled = true;
-  $("imageBtn").disabled = true;
   $("newChatBtn").disabled = true;
-  if (micBtn) micBtn.disabled = true;
   showTyping();
 
-  const contents = previousMessages.map(m => {
-    const parts = [];
-    if (m.text) parts.push({ text: m.text });
-    if (m.image) {
-      const part = imageToPart(m.image);
-      if (part) parts.push(part);
-    }
-    return {
-      role: m.role === "user" ? "user" : "model",
-      parts: parts.length ? parts : [{ text: " " }]
-    };
-  });
-
-  requestController = new AbortController();
-
   try {
+    // Format messages for backend API
+    const formattedMessages = c.messages.map(m => ({
+      role: m.role === 'model' ? 'assistant' : m.role,
+      content: m.text
+    }));
+
     const response = await fetch("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      signal: requestController.signal,
       body: JSON.stringify({
-        prompt: text,
-        image: imgToSend,
-        contents
+        messages: formattedMessages,
+        conversationId: activeConversationId === c.id ? c.id : null,
+        title: c.title
       })
     });
 
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error("Réponse invalide du serveur.");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Erreur serveur.");
+
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      const aiReply = data.choices[0].message.content;
+      c.messages.push({ role: "model", text: aiReply, image: null });
+      if (data.conversationId) c.id = data.conversationId;
+      activeConversationId = c.id;
     }
-
-    if (!response.ok) {
-      throw new Error(data.error || "Erreur du serveur.");
-    }
-
-    if (typeof data.reply !== "string" || !data.reply.trim()) {
-      throw new Error("L'assistant n'a pas renvoyé de réponse.");
-    }
-
-    c.messages.push({ role: "model", text: data.reply });
-  } catch (error) {
-    const message = error.name === "AbortError"
-      ? "Requête annulée."
-      : error.message === "Failed to fetch"
-        ? "Connexion impossible. Vérifiez votre connexion et le déploiement de l'API."
-        : error.message || "Une erreur est survenue.";
-
-    c.messages.push({
-      role: "model",
-      text: "⚠️ **Erreur :** " + message
-    });
+  } catch (err) {
+    c.messages.push({ role: "model", text: "⚠️ **Erreur :** " + (err.message || "Connexion impossible."), image: null });
   } finally {
     removeTyping();
     isSending = false;
-    requestController = null;
     sendBtn.disabled = false;
-    $("imageBtn").disabled = false;
     $("newChatBtn").disabled = false;
-    if (micBtn) micBtn.disabled = false;
     c.updatedAt = Date.now();
-
     conversations.sort((a, b) => b.updatedAt - a.updatedAt);
-    activeConversationId = c.id;
     saveAndRender();
     userInput.focus();
   }
 }
 
-if (conversations.length === 0) {
-  const c = {
-    id: makeId(),
-    title: "Nouvelle discussion",
-    messages: [],
-    updatedAt: Date.now()
-  };
-  conversations.push(c);
-  activeConversationId = c.id;
-} else {
-  conversations.sort((a, b) => b.updatedAt - a.updatedAt);
-  activeConversationId = conversations[0].id;
-}
+userInput.addEventListener("input", resizeInput);
+userInput.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    sendMessage();
+  }
+});
+sendBtn.addEventListener("click", sendMessage);
 
-saveAndRender();
+// Load from Supabase on start
+loadConversationsFromSupabase();
 </script>
 </body>
 </html>
