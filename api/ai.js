@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
-    // Reconstruction propre de l'historique de conversation
+    // Reconstruction de l'historique
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
@@ -43,7 +43,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Gestion du dernier message et de l'image actuelle
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -62,7 +61,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Appel à OpenRouter avec un modèle multimodal rapide et stable
+    // Utilisation de openrouter/auto pour un routage automatique sans plantage
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -72,7 +71,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free", // Modèle ultra-rapide et stable avec support de la vision
+        model: "openrouter/auto", 
         messages: formattedMessages,
         temperature: 0.4
       })
