@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
-    // Reconstruction de l'historique texte uniquement (pour économiser la mémoire)
+    // Reconstruction de l'historique texte
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       formattedMessages.push({ role: role, content: text });
     }
 
-    // Traitement du dernier message avec l'image courante
+    // Traitement du dernier message + image si présente
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Utilisation d'un modèle vision gratuit et rapide sur OpenRouter
+    // Routage automatique OpenRouter (évite les erreurs d'endpoints indisponibles)
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "openrouter/auto", 
         messages: formattedMessages,
         temperature: 0.4
       })
