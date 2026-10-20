@@ -5,12 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <meta name="description" content="Une idée, un devoir, du code ou une question compliquée ? Écris naturellement en derja tunisienne, en arabe, en français ou en anglais.">
-<meta name="keywords" content="ASSTRA AI, AI, Assistant, Gemini, Intelligence Artificielle">
-<meta name="author" content="ASSTRA AI">
-<meta name="robots" content="index, follow">
 <title>ASSTRA AI — Your intelligence, amplified</title>
 
-<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z' fill='%236857f5'/><circle cx='36' cy='10' r='3' fill='%23a855f7'/></svg>">
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -37,79 +33,40 @@ body {
 }
 button, textarea { font: inherit; }
 button { cursor: pointer; }
-button:focus-visible, textarea:focus-visible {
-  outline: 2px solid #a79bff;
-  outline-offset: 2px;
-}
 .app { display: flex; height: 100dvh; overflow: hidden; }
 .sidebar {
-  width: 265px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 17px 13px;
-  background: var(--sidebar);
-  border-right: 1px solid var(--border);
-  z-index: 10;
+  width: 265px; flex-shrink: 0; display: flex; flex-direction: column;
+  padding: 17px 13px; background: var(--sidebar); border-right: 1px solid var(--border); z-index: 10;
 }
 .brand { display: flex; align-items: center; gap: 11px; padding: 5px 7px 23px; }
 .logo {
-  width: 42px; height: 42px; flex-shrink: 0;
-  display: grid; place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(140deg, #6252ee, #a855f7);
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 14px; background: linear-gradient(140deg, #6252ee, #a855f7);
   box-shadow: 0 6px 17px #7564f53a;
 }
 .logo svg { width: 31px; height: 31px; }
 .brand-name {
-  font-size: 18px; font-weight: 850; letter-spacing: .5px;
+  font-size: 18px; font-weight: 850;
   background: linear-gradient(100deg, #6252ee, #a855f7);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.brand-sub { color: var(--muted); font-size: 10px; margin-top: 3px; }
 .new-chat {
   display: flex; justify-content: center; align-items: center; gap: 9px;
-  width: 100%; padding: 12px; border-radius: 12px;
-  color: var(--primary-dark); background: white;
-  border: 1px solid #e4dfff; font-size: 13px; font-weight: 700;
-  transition: .2s;
+  width: 100%; padding: 12px; border-radius: 12px; color: var(--primary-dark);
+  background: white; border: 1px solid #e4dfff; font-size: 13px; font-weight: 700;
 }
 .new-chat:hover { background: var(--purple-light); }
-.section-label {
-  margin: 26px 8px 11px; color: #a09caf;
-  font-size: 10px; font-weight: 800; letter-spacing: 1px;
-  text-transform: uppercase;
-}
+.section-label { margin: 26px 8px 11px; color: #a09caf; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
 .history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-.history-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px; border-radius: 10px; cursor: pointer;
-  color: #69677c; font-size: 12px;
-}
+.history-item { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 10px; cursor: pointer; color: #69677c; font-size: 12px; }
 .history-item:hover { background: #f1efff; }
 .history-item.active { background: #eeebff; color: var(--primary-dark); }
 .history-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.delete-chat {
-  border: 0; background: transparent; color: #aaa;
-  font-size: 17px; padding: 0 3px; flex-shrink: 0;
-}
-.delete-chat:hover { color: #d94662; }
-.sidebar-footer {
-  display: flex; align-items: center; gap: 10px;
-  border-top: 1px solid var(--border); padding: 15px 5px 0;
-}
-.footer-logo {
-  width: 34px; height: 34px; display: grid; place-items: center;
-  background: #eeebff; color: var(--primary); border-radius: 11px;
-}
-.footer-title { font-size: 12px; font-weight: 750; }
-.footer-sub { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.delete-chat { border: 0; background: transparent; color: #aaa; font-size: 17px; }
 
 .main { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; }
 .header {
-  height: 62px; flex-shrink: 0; display: flex;
-  align-items: center; justify-content: space-between;
+  height: 62px; display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px; border-bottom: 1px solid var(--border); background: white;
 }
 .header-left { display: flex; align-items: center; gap: 12px; }
@@ -117,250 +74,64 @@ button:focus-visible, textarea:focus-visible {
 .model-label { padding: 5px 9px; border-radius: 20px; background: #f3f0ff; color: #7261d9; font-size: 10px; }
 .online { display: flex; align-items: center; gap: 6px; color: #858398; font-size: 11px; }
 .dot { width: 7px; height: 7px; background: #25c685; border-radius: 50%; }
-.menu-btn {
-  display: none; width: 37px; height: 37px;
-  border: 0; border-radius: 10px; color: var(--primary);
-  background: var(--purple-light); font-size: 20px;
-}
-.chat {
-  flex: 1; min-height: 0; overflow-y: auto;
-  padding: 28px 18px 35px; scroll-behavior: smooth;
-}
+.menu-btn { display: none; width: 37px; height: 37px; border: 0; border-radius: 10px; color: var(--primary); background: var(--purple-light); font-size: 20px; }
+
+.chat { flex: 1; min-height: 0; overflow-y: auto; padding: 28px 18px 35px; scroll-behavior: smooth; }
 .welcome { max-width: 680px; margin: 9vh auto 0; text-align: center; }
 .welcome-logo {
-  width: 68px; height: 68px; display: grid; place-items: center;
-  margin: 0 auto 22px; border-radius: 23px;
-  background: linear-gradient(140deg, #6252ee, #a855f7);
+  width: 68px; height: 68px; display: grid; place-items: center; margin: 0 auto 22px;
+  border-radius: 23px; background: linear-gradient(140deg, #6252ee, #a855f7);
   box-shadow: 0 12px 34px #7564f52d;
 }
-.welcome-logo svg { width: 48px; height: 48px; }
-.welcome h1 { font-size: clamp(25px, 4vw, 36px); letter-spacing: -1px; font-weight: 800; }
-.gradient-text {
-  background: linear-gradient(100deg, #6657f5, #b053ef);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.welcome p {
-  max-width: 460px; margin: 13px auto 29px;
-  color: var(--muted); font-size: 13px; line-height: 1.8;
-}
+.welcome h1 { font-size: clamp(25px, 4vw, 36px); font-weight: 800; }
+.gradient-text { background: linear-gradient(100deg, #6657f5, #b053ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.welcome p { max-width: 460px; margin: 13px auto 29px; color: var(--muted); font-size: 13px; line-height: 1.8; }
 .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
-.suggestion {
-  padding: 15px; background: white; border: 1px solid var(--border);
-  border-radius: 14px; transition: .2s;
-}
-.suggestion:hover { border-color: #c9c0ff; background: #fcfbff; transform: translateY(-2px); }
-.suggestion-icon { font-size: 19px; margin-bottom: 9px; }
-.suggestion-title { font-size: 12px; font-weight: 750; }
-.suggestion-sub { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
+.suggestion { padding: 15px; background: white; border: 1px solid var(--border); border-radius: 14px; transition: .2s; }
+.suggestion:hover { border-color: #c9c0ff; background: #fcfbff; }
 
-.message-row {
-  width: 100%; max-width: 790px; margin: 0 auto 25px;
-  display: flex; align-items: flex-start; gap: 12px;
-}
+.message-row { width: 100%; max-width: 790px; margin: 0 auto 25px; display: flex; align-items: flex-start; gap: 12px; }
 .message-row.user-row { justify-content: flex-end; }
-.avatar {
-  width: 32px; height: 32px; flex-shrink: 0;
-  display: grid; place-items: center; border-radius: 11px; font-size: 14px;
-}
+.avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 11px; font-size: 14px; }
 .ai-avatar { color: white; background: linear-gradient(140deg, #6657f5, #a855f7); }
 .user-avatar { color: #6657f5; background: #eeebff; }
-.message {
-  max-width: calc(100% - 44px); min-width: 0;
-  font-size: 14px; line-height: 1.8; overflow-wrap: anywhere;
-}
+.message { max-width: calc(100% - 44px); font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
 .message.user { padding: 11px 15px; border-radius: 17px 17px 4px 17px; background: #f0eeff; }
-.message.assistant { flex: 1; padding: 2px 0; }
-.message p { margin-bottom: 10px; }
-.message p:last-child { margin-bottom: 0; }
-.message h1, .message h2, .message h3 { line-height: 1.4; margin: 16px 0 8px; }
-.message h1 { font-size: 22px; } .message h2 { font-size: 18px; } .message h3 { font-size: 15px; }
-.message ul, .message ol { padding-left: 23px; margin: 8px 0; }
-.message li { margin: 4px 0; }
-.message blockquote { border-left: 3px solid #b5a8ff; padding-left: 12px; margin: 10px 0; color: #68647b; }
-.message pre {
-  overflow: auto; padding: 14px; margin: 10px 0;
-  background: #f6f5fa; border: 1px solid var(--border);
-  border-radius: 11px; font-size: 12px;
-}
-.message code { padding: 2px 4px; background: #f0eef8; border-radius: 4px; font-family: Consolas, monospace; font-size: .9em; }
-.message pre code { padding: 0; background: transparent; }
-.message a { color: var(--primary-dark); text-decoration: underline; }
-.message table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
-.message th, .message td { padding: 7px; border: 1px solid var(--border); text-align: left; }
-.message-image {
-  display: block; max-width: min(280px, 100%); max-height: 300px;
-  object-fit: contain; margin-top: 9px; border: 1px solid var(--border); border-radius: 12px;
-}
-.typing { display: flex; gap: 5px; padding: 12px 0; }
-.typing span {
-  width: 7px; height: 7px; border-radius: 50%; background: #9585f5;
-  animation: bounce .8s infinite alternate;
-}
-.typing span:nth-child(2) { animation-delay: .2s; }
-.typing span:nth-child(3) { animation-delay: .4s; }
-@keyframes bounce { to { opacity: .3; transform: translateY(-4px); } }
+.message.assistant { flex: 1; }
+.message-image { display: block; max-width: min(280px, 100%); max-height: 300px; object-fit: contain; margin-top: 9px; border: 1px solid var(--border); border-radius: 12px; }
 
 .composer-area { padding: 12px 18px max(13px, env(safe-area-inset-bottom)); background: white; }
-.composer-wrap { max-width: 790px; margin: 0 auto; }
-.image-preview {
-  display: none; align-items: center; gap: 10px;
-  padding: 8px; margin-bottom: 10px; background: #f5f2ff; border-radius: 12px;
-}
+.composer-wrap { max-width: 790px; margin: 0 auto; position: relative; }
+.image-preview { display: none; align-items: center; gap: 10px; padding: 8px; margin-bottom: 10px; background: #f5f2ff; border-radius: 12px; }
 .image-preview img { width: 47px; height: 47px; object-fit: cover; border-radius: 8px; }
 .preview-label { flex: 1; color: var(--primary-dark); font-size: 12px; }
 .remove-image { width: 29px; height: 29px; border: 0; border-radius: 8px; background: white; color: #d94662; }
+
 .composer {
   display: flex; align-items: flex-end; gap: 8px; padding: 8px 9px;
-  background: white; border: 1px solid #dedce9; border-radius: 18px;
-  box-shadow: 0 4px 20px #24204a08; transition: .2s;
+  background: white; border: 1px solid #dedce9; border-radius: 18px; box-shadow: 0 4px 20px #24204a08;
 }
-.composer:focus-within { border-color: #b4a8ff; box-shadow: 0 0 0 3px #7564f510; }
-.icon-btn {
-  width: 38px; height: 38px; flex-shrink: 0;
-  border: 0; border-radius: 11px; background: #f3f0ff;
-  color: var(--primary); font-size: 20px;
-  display: grid; place-items: center; transition: .2s;
-}
-.icon-btn:hover { background: #e8e3ff; }
-.icon-btn.recording {
-  background: #e54865; color: white;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse { 50% { box-shadow: 0 0 0 5px #e5486525; } }
+.composer textarea { flex: 1; max-height: 150px; resize: none; padding: 10px 3px; border: 0; outline: 0; background: transparent; font-size: 14px; }
+.composer-plus { width: 38px; height: 38px; border: 0; border-radius: 50%; background: #f3f0ff; color: var(--primary); font-size: 22px; display: grid; place-items: center; }
+.send-btn { width: 39px; height: 39px; border: 0; border-radius: 12px; background: linear-gradient(140deg, #6657f5, #8b5cf6); color: white; font-size: 22px; display: grid; place-items: center; }
 
-.composer textarea {
-  flex: 1; min-width: 0; max-height: 150px; resize: none;
-  padding: 10px 3px; border: 0; outline: 0;
-  background: transparent; color: var(--text); font-size: 14px; line-height: 1.5;
+/* Plus Popup Menu */
+.plus-menu {
+  display: none; position: absolute; bottom: 70px; left: 0; width: 260px;
+  background: white; border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 10px; z-index: 100;
+  flex-direction: column; gap: 5px;
 }
-.send-btn {
-  width: 39px; height: 39px; flex-shrink: 0;
-  display: grid; place-items: center; border: 0; border-radius: 12px;
-  background: linear-gradient(140deg, #6657f5, #8b5cf6);
-  color: white; font-size: 22px; transition: .2s;
+.plus-menu.open { display: flex; }
+.plus-menu button {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
+  border: 0; background: transparent; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--text); text-align: left;
 }
-.send-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px #6657f54a; }
-.send-btn:disabled { opacity: .5; cursor: not-allowed; }
+.plus-menu button:hover { background: var(--purple-light); color: var(--primary-dark); }
+.plus-menu span { font-size: 18px; width: 24px; text-align: center; }
+
 .disclaimer { margin-top: 9px; color: #a09eac; font-size: 10px; text-align: center; }
 .overlay { display: none; }
-
-@media(max-width:768px) {
-  .sidebar { position: fixed; inset: 0 auto 0 0; width: min(285px, 86vw); height: 100dvh; transform: translateX(-105%); transition: transform .25s; box-shadow: none; }
-  .sidebar.open { transform: translateX(0); box-shadow: 10px 0 40px #17132b12; }
-  .overlay.open { display: block; position: fixed; inset: 0; z-index: 9; background: #15132655; }
-  .menu-btn { display: block; }
-  .header { height: 57px; padding: 0 12px; }
-  .chat { padding: 20px 12px; }
-  .welcome { margin-top: 7vh; }
-  .welcome-logo { width: 59px; height: 59px; border-radius: 20px; }
-  .welcome h1 { font-size: 27px; }
-  .welcome p { font-size: 12px; margin-bottom: 22px; }
-  .suggestions { gap: 8px; }
-  .suggestion { padding: 12px; }
-  .suggestion-sub { font-size: 10px; }
-  .message-row { gap: 9px; margin-bottom: 21px; }
-  .message { font-size: 13px; }
-  .composer-area { padding: 9px 10px max(10px, env(safe-area-inset-bottom)); }
-  .composer { border-radius: 16px; }
-  .disclaimer { font-size: 9px; }
-}
-
-:root {
-  --primary: #7055f7;
-  --primary-dark: #5436dc;
-  --purple-light: #f5f1ff;
-  --text: #24213b;
-  --muted: #89869f;
-  --border: #ece9f5;
-  --background: #ffffff;
-  --sidebar: #fcfbff;
-}
-body {
-  background:
-    radial-gradient(ellipse at 72% 4%, rgba(174, 139, 255, .075), transparent 33%),
-    radial-gradient(ellipse at 15% 92%, rgba(119, 93, 255, .045), transparent 34%),
-    #fff;
-}
-.sidebar {
-  background: linear-gradient(180deg, #fdfcff 0%, #faf9ff 100%);
-  border-right-color: #eeebf7;
-}
-.logo, .welcome-logo {
-  position: relative;
-  background: linear-gradient(135deg, #5541ed 0%, #8c5cff 53%, #c06bff 100%);
-  box-shadow: 0 8px 24px rgba(104, 79, 244, .26);
-}
-.brand-name {
-  background-image: linear-gradient(100deg, #5944eb 0%, #8a4df5 52%, #bd5cf0 100%);
-}
-.new-chat {
-  border-color: #e6defe;
-  box-shadow: 0 3px 12px rgba(87, 62, 200, .045);
-}
-.history-item.active { box-shadow: inset 3px 0 0 #8065ff; }
-.header {
-  background: rgba(255,255,255,.88);
-  backdrop-filter: blur(16px);
-}
-.welcome {
-  max-width: 720px;
-  margin-top: clamp(42px, 8vh, 82px);
-}
-.gradient-text {
-  background-image: linear-gradient(100deg, #5b49ed 0%, #8b50f5 48%, #c35fe9 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.suggestion {
-  border-color: #ebe8f5;
-  border-radius: 17px;
-  background: linear-gradient(145deg, #fff 0%, #fdfcff 100%);
-}
-.message.user {
-  border: 1px solid #e9e1ff;
-  background: linear-gradient(135deg, #f4f0ff, #faf6ff);
-}
-.composer {
-  border-color: #e6e1f0;
-  border-radius: 20px;
-}
-.send-btn {
-  background: linear-gradient(135deg, #5f4af0 0%, #8556f5 58%, #a75cf2 100%);
-}
-
-.sidebar-nav{display:flex;flex-direction:column;gap:5px;margin:18px 0 4px}
-.sidebar-nav button{display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:1px solid transparent;border-radius:11px;background:transparent;color:#49465e;font-size:13px;}
-.sidebar-nav button:hover{background:#f0edff;}
-.sidebar-nav .nav-icon{width:20px;display:inline-grid;place-items:center;font-size:17px;color:#7060dc}
-.sidebar-nav button .nav-badge{margin-left:auto;font-size:9px;padding:3px 6px;border-radius:6px;background:#f0eaff;color:#7354df}
-.feature-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(29,22,59,.30);backdrop-filter:blur(5px)}
-.feature-modal.open{display:flex}
-.feature-panel{width:min(560px,100%);max-height:min(78vh,720px);overflow:auto;background:#fff;border-radius:22px;padding:23px}
-.feature-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}
-.feature-close{width:34px;height:34px;border:0;border-radius:10px;background:#f4f0ff;color:#6550df;font-size:22px}
-.feature-description{color:#858198;font-size:13px;margin-bottom:16px}
-.feature-action{width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:13px;margin:8px 0;border:1px solid #ece7f7;border-radius:13px;background:#fff;}
-.feature-input{width:100%;border:1px solid #e6e0f3;border-radius:12px;padding:12px;margin:6px 0 12px}
-.feature-primary{border:0;border-radius:11px;padding:11px 16px;background:linear-gradient(135deg,#6550ef,#a456f2);color:white;font-weight:700;}
-
-.composer-area { padding-top: 14px; }
-.composer-wrap { max-width: 845px; }
-.composer {
-  min-height: 66px; align-items: center; gap: 10px; padding: 8px 9px 8px 13px;
-  border: 1px solid #e8e7ec; border-radius: 36px;
-}
-.composer-plus {
-  width: 34px; height: 38px; border: 0; border-radius: 50%;
-  background: transparent; color: #292735; font-size: 28px;
-}
-.analyze-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  padding: 9px 10px; border: 0; border-radius: 22px; color: #777583; background: transparent; font-size: 14px;
-}
-.mic-minimal {
-  width: 34px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: #24232b; font-size: 22px;
-}
 </style>
 </head>
 <body>
@@ -370,43 +141,22 @@ body {
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="logo">
-        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <path d="M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z" fill="white"/>
-          <circle cx="36" cy="10" r="3" fill="#DDD6FE"/>
-        </svg>
+        <svg viewBox="0 0 48 48" fill="none"><path d="M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z" fill="white"/><circle cx="36" cy="10" r="3" fill="#DDD6FE"/></svg>
       </div>
       <div>
         <div class="brand-name">ASSTRA AI</div>
-        <div class="brand-sub">Intelligence, autrement.</div>
+        <div class="brand-sub" style="font-size:10px;color:var(--muted)">Intelligence, autrement.</div>
       </div>
     </div>
-
     <button class="new-chat" id="newChatBtn">＋ Nouvelle discussion</button>
-    <nav class="sidebar-nav" aria-label="Outils ASSTRA AI">
-      <button type="button" data-feature="images"><span class="nav-icon">▧</span>Images</button>
-      <button type="button" data-feature="library"><span class="nav-icon">▤</span>Bibliothèque</button>
-      <button type="button" data-feature="planning"><span class="nav-icon">◷</span>Planification</button>
-      <button type="button" data-feature="plugins"><span class="nav-icon">◉</span>Plugins <span class="nav-badge">OUTILS</span></button>
-      <button type="button" data-feature="projects"><span class="nav-icon">▱</span>Projets</button>
-      <button type="button" data-feature="codex"><span class="nav-icon">⌘</span>Codex</button>
-      <button type="button" data-feature="more"><span class="nav-icon">•••</span>Plus</button>
-    </nav>
     <div class="section-label">Discussions récentes</div>
     <div class="history" id="historyList"></div>
-
-    <div class="sidebar-footer">
-      <div class="footer-logo">✦</div>
-      <div>
-        <div class="footer-title">ASSTRA AI</div>
-        <div class="footer-sub">Votre assistant intelligent</div>
-      </div>
-    </div>
   </aside>
 
   <main class="main">
     <header class="header">
       <div class="header-left">
-        <button class="menu-btn" id="menuBtn" aria-label="Ouvrir le menu">☰</button>
+        <button class="menu-btn" id="menuBtn">☰</button>
         <div class="header-title">ASSTRA AI</div>
         <span class="model-label">Asstra AI 1.5 Flash ⚡</span>
       </div>
@@ -417,30 +167,35 @@ body {
 
     <footer class="composer-area">
       <div class="composer-wrap">
+        <!-- Plus Popup Menu -->
+        <div class="plus-menu" id="plusMenu">
+          <button id="menuPhotos"><span>🖼️</span> Photos / Galerie</button>
+          <button id="menuCamera"><span>📷</span> Appareil photo</button>
+          <button id="menuFiles"><span>📁</span> Fichiers</button>
+          <button id="menuCreateImg"><span>🎨</span> Créer des images</button>
+          <button id="menuStudy"><span>📚</span> Apprentissage guidé</button>
+        </div>
+
         <div class="image-preview" id="imagePreview">
           <img id="previewImg" alt="Image sélectionnée">
           <div class="preview-label">Image prête à envoyer</div>
-          <button class="remove-image" id="removeImageBtn" aria-label="Retirer l'image">×</button>
+          <button class="remove-image" id="removeImageBtn">×</button>
         </div>
+
         <div class="composer">
-          <button class="composer-plus" id="imageBtn" title="Ajouter une image ou un fichier" aria-label="Ajouter une image">＋</button>
-          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" hidden>
-          <textarea id="userInput" rows="1" maxlength="20000" placeholder="Poser une question" aria-label="Votre question"></textarea>
-          <button class="analyze-btn" id="analyzeBtn" type="button" aria-pressed="false" title="Activer le mode analyse"><span class="analyze-symbol">✿</span> Analyser</button>
-          <button class="mic-minimal" id="micBtn" title="Dicter une question" aria-label="Parler">♩</button>
-          <button class="send-btn voice-btn" id="sendBtn" aria-label="Envoyer" title="Envoyer la question">↑</button>
+          <button class="composer-plus" id="imageBtn" title="Ajouter">＋</button>
+          <!-- Hidden inputs -->
+          <input type="file" id="imageInput" accept="image/*" hidden>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+          <input type="file" id="fileInput" accept=".pdf,.txt,.doc,.docx" hidden>
+
+          <textarea id="userInput" rows="1" maxlength="20000" placeholder="Poser une question..."></textarea>
+          <button class="send-btn" id="sendBtn">↑</button>
         </div>
         <div class="disclaimer">ASSTRA AI peut faire des erreurs. Vérifiez les informations importantes.</div>
       </div>
     </footer>
   </main>
-</div>
-
-<div class="feature-modal" id="featureModal" role="dialog" aria-modal="true" aria-labelledby="featureTitle">
-  <div class="feature-panel">
-    <div class="feature-head"><h2 id="featureTitle">ASSTRA AI</h2><button class="feature-close" id="featureClose" aria-label="Fermer">×</button></div>
-    <div id="featureBody"></div>
-  </div>
 </div>
 
 <script>
@@ -457,18 +212,18 @@ const historyList = $("historyList");
 const userInput = $("userInput");
 const sendBtn = $("sendBtn");
 const imageInput = $("imageInput");
+const cameraInput = $("cameraInput");
+const fileInput = $("fileInput");
 const imageBtn = $("imageBtn");
+const plusMenu = $("plusMenu");
 const imagePreview = $("imagePreview");
 const previewImg = $("previewImg");
 const removeImageBtn = $("removeImageBtn");
 const sidebar = $("sidebar");
 const overlay = $("overlay");
-const micBtn = $("micBtn");
 
 function makeId() {
-  return window.crypto && crypto.randomUUID
-    ? crypto.randomUUID()
-    : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  return window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
 function getActive() {
@@ -493,196 +248,142 @@ async function loadConversationsFromSupabase() {
       conversations.sort((a, b) => b.updatedAt - a.updatedAt);
     }
   } catch (err) {
-    console.warn("Erreur chargement Supabase:", err);
+    console.warn("Erreur chargement:", err);
   }
-
-  if (conversations.length === 0) {
-    newConversation(false);
-  } else if (!activeConversationId) {
-    activeConversationId = conversations[0].id;
-  }
+  if (conversations.length === 0) newConversation(false);
+  else if (!activeConversationId) activeConversationId = conversations[0].id;
   saveAndRender();
-}
-
-function closeSidebar() {
-  sidebar.classList.remove("open");
-  overlay.classList.remove("open");
 }
 
 function clearImage() {
   selectedImage = null;
   if (imageInput) imageInput.value = "";
+  if (cameraInput) cameraInput.value = "";
+  if (fileInput) fileInput.value = "";
   if (previewImg) previewImg.removeAttribute("src");
   if (imagePreview) imagePreview.style.display = "none";
 }
 
-if (imageBtn && imageInput) {
-  imageBtn.addEventListener("click", () => {
-    imageInput.click();
+// Toggle Plus Menu
+if (imageBtn && plusMenu) {
+  imageBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    plusMenu.classList.toggle("open");
   });
-
-  imageInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        selectedImage = event.target.result;
-        if (previewImg) previewImg.src = selectedImage;
-        if (imagePreview) imagePreview.style.display = "flex";
-      };
-      reader.readAsDataURL(file);
+  document.addEventListener("click", (e) => {
+    if (!plusMenu.contains(e.target) && e.target !== imageBtn) {
+      plusMenu.classList.remove("open");
     }
   });
 }
 
-if (removeImageBtn) {
-  removeImageBtn.addEventListener("click", clearImage);
+// Menu Actions
+if ($("menuPhotos")) {
+  $("menuPhotos").onclick = () => { plusMenu.classList.remove("open"); imageInput.click(); };
 }
+if ($("menuCamera")) {
+  $("menuCamera").onclick = () => { plusMenu.classList.remove("open"); cameraInput.click(); };
+}
+if ($("menuFiles")) {
+  $("menuFiles").onclick = () => { plusMenu.classList.remove("open"); fileInput.click(); };
+}
+if ($("menuCreateImg")) {
+  $("menuCreateImg").onclick = () => { plusMenu.classList.remove("open"); userInput.value = "Crée une image : "; userInput.focus(); };
+}
+if ($("menuStudy")) {
+  $("menuStudy").onclick = () => { plusMenu.classList.remove("open"); userInput.value = "Aide-moi étape par étape sur : "; userInput.focus(); };
+}
+
+// Handle file/image selections
+function handleFileSelect(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    selectedImage = e.target.result; // Base64
+    if (previewImg) previewImg.src = selectedImage;
+    if (imagePreview) imagePreview.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+
+if (imageInput) imageInput.onchange = (e) => handleFileSelect(e.target.files[0]);
+if (cameraInput) cameraInput.onchange = (e) => handleFileSelect(e.target.files[0]);
+if (fileInput) fileInput.onchange = (e) => {
+  const f = e.target.files[0];
+  if (f) { userInput.value = "Analyse ce fichier : " + f.name; resizeInput(); }
+};
+
+if (removeImageBtn) removeImageBtn.onclick = clearImage;
 
 function newConversation(render = true) {
   if (isSending) return;
-  activeConversationId = null; 
+  activeConversationId = null;
   clearImage();
-  closeSidebar();
   if (render) saveAndRender();
   userInput.focus();
 }
 
 function openConversation(id) {
   if (isSending) return;
-  if (!conversations.some(c => c.id === id)) return;
   activeConversationId = id;
   clearImage();
-  closeSidebar();
-  saveAndRender();
-}
-
-function deleteConversation(id) {
-  if (isSending) return;
-  conversations = conversations.filter(c => c.id !== id);
-  if (activeConversationId === id) {
-    activeConversationId = conversations[0]?.id || null;
-  }
-  if (!activeConversationId) {
-    newConversation(false);
-  }
   saveAndRender();
 }
 
 function saveAndRender() {
-  renderHistory();
-  renderChat();
-}
-
-function renderHistory() {
-  if (!historyList) return;
-  historyList.replaceChildren();
-
-  conversations.forEach(c => {
-    const item = document.createElement("div");
-    item.className = "history-item" +
-      (c.id === activeConversationId ? " active" : "");
-
-    const icon = document.createElement("span");
-    icon.textContent = "◷";
-
-    const name = document.createElement("span");
-    name.className = "history-name";
-    name.textContent = c.title || "Nouvelle discussion";
-
-    const del = document.createElement("button");
-    del.className = "delete-chat";
-    del.type = "button";
-    del.textContent = "×";
-    del.title = "Supprimer la discussion";
-
-    item.append(icon, name, del);
-    item.addEventListener("click", () => openConversation(c.id));
-
-    del.addEventListener("click", event => {
-      event.stopPropagation();
-      if (confirm("Supprimer cette discussion ?")) {
-        deleteConversation(c.id);
-      }
+  if (historyList) {
+    historyList.replaceChildren();
+    conversations.forEach(c => {
+      const item = document.createElement("div");
+      item.className = "history-item" + (c.id === activeConversationId ? " active" : "");
+      item.innerHTML = `<span>◷</span><span class="history-name">${c.title || "Discussion"}</span>`;
+      item.onclick = () => openConversation(c.id);
+      historyList.appendChild(item);
     });
-
-    historyList.appendChild(item);
-  });
+  }
+  if (chatMessages) {
+    chatMessages.replaceChildren();
+    const c = getActive();
+    if (!c || !c.messages || c.messages.length === 0) {
+      addWelcome();
+    } else {
+      c.messages.forEach(appendMessage);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  }
 }
 
 function addWelcome() {
-  if (!chatMessages) return;
   const welcome = document.createElement("div");
   welcome.className = "welcome";
   welcome.innerHTML = `
     <div class="welcome-logo">
-      <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-        <path d="M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z" fill="white"/>
-        <circle cx="36" cy="10" r="3" fill="#DDD6FE"/>
-      </svg>
+      <svg viewBox="0 0 48 48" fill="none"><path d="M24 3L30 18L45 24L30 30L24 45L18 30L3 24L18 18Z" fill="white"/><circle cx="36" cy="10" r="3" fill="#DDD6FE"/></svg>
     </div>
     <h1>Bonjour, bienvenue sur<br><span class="gradient-text">ASSTRA AI</span> 🌟</h1>
     <p>Votre espace intelligent pour apprendre, créer, résoudre des problèmes et explorer de nouvelles idées.</p>
-    <div class="suggestions">
-      <button class="suggestion" data-prompt="Aide-moi à trouver des idées créatives pour un projet. 💡">
-        <div class="suggestion-icon">✧</div>
-        <div class="suggestion-title">Créativité et idées 💡</div>
-        <div class="suggestion-sub">Trouver l'inspiration pour un projet</div>
-      </button>
-      <button class="suggestion" data-prompt="Explique-moi un concept informatique simplement, étape par étape. 💻">
-        <div class="suggestion-icon">⌘</div>
-        <div class="suggestion-title">Programmation 💻</div>
-        <div class="suggestion-sub">Comprendre et écrire du code</div>
-      </button>
-      <button class="suggestion" data-prompt="Donne-moi une méthode simple pour mieux apprendre et réviser. 📚">
-        <div class="suggestion-icon">✎</div>
-        <div class="suggestion-title">Apprentissage 📚</div>
-        <div class="suggestion-sub">Réviser et mieux comprendre</div>
-      </button>
-      <button class="suggestion" data-prompt="Je veux analyser une image. Explique-moi comment tu peux m'aider. 🖼️">
-        <div class="suggestion-icon">▧</div>
-        <div class="suggestion-title">Images et analyse 🖼️</div>
-        <div class="suggestion-sub">Comprendre une photo ou un document</div>
-      </button>
-    </div>`;
-
-  welcome.querySelectorAll("[data-prompt]").forEach(button => {
-    button.addEventListener("click", () => {
-      userInput.value = button.dataset.prompt;
-      resizeInput();
-      userInput.focus();
-    });
-  });
-
+  `;
   chatMessages.appendChild(welcome);
 }
 
 function appendMessage(m) {
-  if (!chatMessages) return;
   const row = document.createElement("div");
-  row.className = "message-row" +
-    (m.role === "user" ? " user-row" : "");
-
+  row.className = "message-row" + (m.role === "user" ? " user-row" : "");
+  
   const avatar = document.createElement("div");
-  avatar.className = "avatar " +
-    (m.role === "user" ? "user-avatar" : "ai-avatar");
+  avatar.className = "avatar " + (m.role === "user" ? "user-avatar" : "ai-avatar");
   avatar.textContent = m.role === "user" ? "●" : "✦";
 
   const bubble = document.createElement("div");
-  bubble.className = "message " +
-    (m.role === "user" ? "user" : "assistant");
+  bubble.className = "message " + (m.role === "user" ? "user" : "assistant");
 
   if (m.text) {
     if (m.role === "user") {
       bubble.textContent = m.text;
       bubble.style.whiteSpace = "pre-wrap";
     } else {
-      const raw = window.marked
-        ? marked.parse(m.text, { breaks: true })
-        : m.text;
-      bubble.innerHTML = window.DOMPurify
-        ? DOMPurify.sanitize(raw)
-        : raw;
+      const raw = window.marked ? marked.parse(m.text, { breaks: true }) : m.text;
+      bubble.innerHTML = window.DOMPurify ? DOMPurify.sanitize(raw) : raw;
     }
   }
 
@@ -690,52 +391,12 @@ function appendMessage(m) {
     const img = document.createElement("img");
     img.className = "message-image";
     img.src = m.image;
-    img.alt = "Image envoyée";
-    img.loading = "lazy";
     bubble.appendChild(img);
   }
 
   if (m.role === "user") row.append(bubble, avatar);
   else row.append(avatar, bubble);
-
   chatMessages.appendChild(row);
-}
-
-function renderChat() {
-  if (!chatMessages) return;
-  chatMessages.replaceChildren();
-  const c = getActive();
-
-  if (!c || !c.messages || c.messages.length === 0) {
-    addWelcome();
-    return;
-  }
-
-  c.messages.forEach(appendMessage);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function showTyping() {
-  if (!chatMessages) return;
-  const row = document.createElement("div");
-  row.className = "message-row";
-  row.id = "typingIndicator";
-
-  const avatar = document.createElement("div");
-  avatar.className = "avatar ai-avatar";
-  avatar.textContent = "✦";
-
-  const dots = document.createElement("div");
-  dots.className = "typing";
-  dots.innerHTML = "<span></span><span></span><span></span>";
-
-  row.append(avatar, dots);
-  chatMessages.appendChild(row);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function removeTyping() {
-  $("typingIndicator")?.remove();
 }
 
 function resizeInput() {
@@ -744,139 +405,10 @@ function resizeInput() {
   userInput.style.height = Math.min(userInput.scrollHeight, 150) + "px";
 }
 
-const featureModal = $("featureModal");
-const featureTitle = $("featureTitle");
-const featureBody = $("featureBody");
-const PLAN_KEY = "asstra_ai_plans_v1";
-
-function closeFeature() {
-  if (featureModal) featureModal.classList.remove("open");
-}
-
-if ($("featureClose")) {
-  $("featureClose").addEventListener("click", closeFeature);
-}
-
-if (featureModal) {
-  featureModal.addEventListener("click", e => { if(e.target === featureModal) closeFeature(); });
-}
-
-document.addEventListener("keydown", e => { if(e.key === "Escape") closeFeature(); });
-
-function showFeature(title, html) {
-  if (!featureModal) return;
-  featureTitle.textContent = title;
-  featureBody.innerHTML = html;
-  featureModal.classList.add("open");
-}
-
-function openFeature(name) {
-  closeSidebar();
-  if (name === "images") {
-    showFeature("Images IA", `<p class="feature-description">Décris l’image que tu veux créer. ASSTRA AI préparera une demande de génération dans la conversation.</p><input class="feature-input" id="imagePromptFeature" placeholder="Ex. logo futuriste violet pour ASSTRA AI"><button class="feature-primary" id="startImageFeature">Créer une image ✨</button>`);
-    const startBtn = $("startImageFeature");
-    if (startBtn) {
-      startBtn.onclick = () => {
-        const v = $("imagePromptFeature").value.trim();
-        if (!v) return;
-        closeFeature();
-        if (!getActive()) newConversation();
-        userInput.value = "Crée une image : " + v;
-        resizeInput();
-        sendMessage();
-      };
-    }
-  } else if (name === "library") {
-    const imgs = []; 
-    conversations.forEach(c => (c.messages || []).forEach(m => { if (m.image) imgs.push({ src: m.image, alt: m.text || "Image ASSTRA AI" }); }));
-    const html = imgs.length ? `<p class="feature-description">Images trouvées dans tes conversations.</p><div class="library-grid">${imgs.map((im, i) => `<img src="${im.src.replace(/"/g,'&quot;')}" alt="Image ${i+1}" loading="lazy">`).join("")}</div>` : `<div class="library-empty">▤<br><strong>Ta bibliothèque est vide</strong><br>Les images envoyées ou générées apparaîtront ici.</div>`;
-    showFeature("Bibliothèque", html);
-  } else if (name === "planning") {
-    let plans = [];
-    try { plans = JSON.parse(localStorage.getItem(PLAN_KEY) || "[]"); } catch {}
-    showFeature("Planification", `<p class="feature-description">Crée des rappels simples enregistrés dans ce navigateur.</p><input class="feature-input" id="planText" placeholder="Ex. Réviser les maths"><input class="feature-input" id="planDate" type="datetime-local"><button class="feature-primary" id="addPlan">＋ Ajouter un rappel</button><div id="planList" style="margin-top:16px"></div>`);
-    const draw = () => {
-      let a = [];
-      try { a = JSON.parse(localStorage.getItem(PLAN_KEY) || "[]"); } catch {}
-      const listEl = $("planList");
-      if (!listEl) return;
-      listEl.innerHTML = a.length ? a.map((p, i) => `<div class="feature-action"><span>◷</span><span style="flex:1">${p.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}<small>${p.date ? new Date(p.date).toLocaleString() : "Sans date"}</small></span><button data-del-plan="${i}" style="border:0;background:transparent;color:#c65b77">×</button></div>`).join("") : `<p class="feature-description">Aucun rappel pour le moment.</p>`;
-      listEl.querySelectorAll("[data-del-plan]").forEach(b => b.onclick = () => {
-        a.splice(Number(b.dataset.delPlan), 1);
-        localStorage.setItem(PLAN_KEY, JSON.stringify(a));
-        draw();
-      });
-    };
-    const addPlanBtn = $("addPlan");
-    if (addPlanBtn) {
-      addPlanBtn.onclick = () => {
-        const textVal = $("planText").value.trim();
-        if (!textVal) return;
-        plans.push({ text: textVal, date: $("planDate").value });
-        localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-        $("planText").value = "";
-        $("planDate").value = "";
-        draw();
-      };
-    }
-    draw();
-  } else if (name === "plugins") {
-    showFeature("Outils & plugins", `<p class="feature-description">Ces raccourcis utilisent les fonctions déjà disponibles dans ton site.</p><button class="feature-action" id="pluginImage"><span>🎨</span><span>Créer une image</span></button><button class="feature-action" id="pluginAnalyze"><span>🖼️</span><span>Analyser une image</span></button><button class="feature-action" id="pluginCode"><span>⌘</span><span>Aide en programmation</span></button>`);
-    if ($("pluginImage")) $("pluginImage").onclick = () => openFeature("images");
-    if ($("pluginAnalyze")) $("pluginAnalyze").onclick = () => { closeFeature(); if (imageBtn) imageBtn.click(); userInput.focus(); };
-    if ($("pluginCode")) $("pluginCode").onclick = () => { closeFeature(); userInput.value = "Aide-moi à écrire et expliquer du code étape par étape."; resizeInput(); userInput.focus(); };
-  } else if (name === "projects") {
-    showFeature("Projets", `<p class="feature-description">Organise ton travail.</p><button class="feature-action" id="projectAsstra"><span>✦</span><span>Projet ASSTRA AI</span></button><button class="feature-action" id="projectNew"><span>＋</span><span>Nouveau projet</span></button>`);
-    if ($("projectAsstra")) $("projectAsstra").onclick = () => { closeFeature(); userInput.value = "Continuons à développer mon projet ASSTRA AI. Propose-moi les prochaines améliorations."; resizeInput(); userInput.focus(); };
-    if ($("projectNew")) $("projectNew").onclick = () => { closeFeature(); newConversation(); };
-  } else if (name === "codex") {
-    showFeature("Codex · Assistant de code", `<p class="feature-description">Utilise l’assistant ASSTRA pour écrire et corriger du code.</p><button class="feature-action" id="codexWrite"><span>⌘</span><span>Écrire du code</span></button><button class="feature-action" id="codexFix"><span>⚙</span><span>Corriger un bug</span></button>`);
-    if ($("codexWrite")) $("codexWrite").onclick = () => { closeFeature(); userInput.value = "Aide-moi à écrire du code propre et explique chaque étape."; resizeInput(); userInput.focus(); };
-    if ($("codexFix")) $("codexFix").onclick = () => { closeFeature(); userInput.value = "Aide-moi à déboguer ce code : "; resizeInput(); userInput.focus(); };
-  } else {
-    showFeature("Plus d’options", `<button class="feature-action" id="moreNew"><span>＋</span><span>Nouvelle discussion</span></button><button class="feature-action" id="moreHistory"><span>◷</span><span>Discussions récentes</span></button><p class="feature-description">Les conversations sont synchronisées automatiquement.</p>`);
-    if ($("moreNew")) $("moreNew").onclick = () => { closeFeature(); newConversation(); };
-    if ($("moreHistory")) $("moreHistory").onclick = closeFeature;
-  }
-}
-
-document.querySelectorAll("[data-feature]").forEach(b => {
-  b.addEventListener("click", () => openFeature(b.dataset.feature));
-});
-
-if ($("newChatBtn")) $("newChatBtn").addEventListener("click", () => newConversation(true));
-if ($("menuBtn")) {
-  $("menuBtn").addEventListener("click", () => {
-    sidebar.classList.add("open");
-    overlay.classList.add("open");
-  });
-}
-if (overlay) overlay.addEventListener("click", closeSidebar);
-
-let analyzeMode = false;
-const analyzeBtn = $("analyzeBtn");
-if (analyzeBtn) {
-  analyzeBtn.addEventListener("click", () => {
-    analyzeMode = !analyzeMode;
-    analyzeBtn.setAttribute("aria-pressed", String(analyzeMode));
-    analyzeBtn.title = analyzeMode ? "Désactiver le mode analyse" : "Activer le mode analyse";
-    userInput.placeholder = analyzeMode ? "Que souhaitez-vous analyser ?" : "Poser une question";
-    if (analyzeMode) userInput.focus();
-  });
-}
-
 async function sendMessage() {
   if (isSending) return;
-
   let text = userInput.value.trim();
   if (!text && !selectedImage) return;
-
-  if (analyzeMode) {
-    text = "Analyse cette demande avec méthode, détaille les points importants :\n\n" + text;
-    analyzeMode = false;
-    if (analyzeBtn) analyzeBtn.setAttribute("aria-pressed", "false");
-    userInput.placeholder = "Poser une question";
-  }
 
   let c = getActive();
   if (!c) {
@@ -896,23 +428,15 @@ async function sendMessage() {
 
   isSending = true;
   if (sendBtn) sendBtn.disabled = true;
-  if ($("newChatBtn")) $("newChatBtn").disabled = true;
-  showTyping();
 
   try {
-    const formattedMessages = c.messages.map(m => ({
-      role: m.role === 'model' ? 'assistant' : m.role,
-      content: m.text
-    }));
-
     const response = await fetch("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages: formattedMessages,
-        conversationId: c.id.length > 20 ? c.id : null,
-        title: c.title,
-        image: currentImage
+        messages: c.messages.map(m => ({ role: m.role === 'model' ? 'assistant' : m.role, content: m.text })),
+        conversationId: c.id,
+        image: currentImage // Baathna el image base64 lel backend bash el AI ta9raha!
       })
     });
 
@@ -920,38 +444,27 @@ async function sendMessage() {
     if (!response.ok) throw new Error(data.error || "Erreur serveur.");
 
     if (data.choices && data.choices[0] && data.choices[0].message) {
-      const aiReply = data.choices[0].message.content;
-      c.messages.push({ role: "model", text: aiReply, image: null });
-      if (data.conversationId) c.id = data.conversationId;
-      if (data.title) c.title = data.title;
-      activeConversationId = c.id;
+      c.messages.push({ role: "model", text: data.choices[0].message.content, image: null });
     }
   } catch (err) {
     c.messages.push({ role: "model", text: "⚠️ **Erreur :** " + (err.message || "Connexion impossible."), image: null });
   } finally {
-    removeTyping();
     isSending = false;
     if (sendBtn) sendBtn.disabled = false;
-    if ($("newChatBtn")) $("newChatBtn").disabled = false;
     c.updatedAt = Date.now();
-    conversations.sort((a, b) => b.updatedAt - a.updatedAt);
     saveAndRender();
     if (userInput) userInput.focus();
   }
 }
 
 if (userInput) {
-  userInput.addEventListener("input", resizeInput);
-  userInput.addEventListener("keydown", event => {
-    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-      event.preventDefault();
-      sendMessage();
-    }
-  });
+  userInput.oninput = resizeInput;
+  userInput.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 }
-if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+if (sendBtn) sendBtn.onclick = sendMessage;
+if ($("newChatBtn")) $("newChatBtn").onclick = () => newConversation(true);
+if ($("menuBtn")) $("menuBtn").onclick = () => sidebar.classList.toggle("open");
 
-// Load from Supabase on start
 loadConversationsFromSupabase();
 </script>
 </body>
