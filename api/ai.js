@@ -62,7 +62,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Utilisation d'un model ID valide sur OpenRouter (ex: google/gemini-flash-1.5)
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -91,8 +90,8 @@ export default async function handler(req, res) {
       title: title || "Discussion Intelligente"
     });
 
-  } cat
-
-<FollowUp>
-- Mets à jour ce code dans ton fichier `api/ai.js`, fais ton Commit, et dis-moi si tout fonctionne enfin correctement !
-</FollowUp>
+  } catch (error) {
+    console.error("Erreur API Details:", error);
+    return res.status(500).json({ error: error.message || "Erreur interne du serveur." });
+  }
+}
