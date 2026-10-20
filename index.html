@@ -97,14 +97,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
 }
 .welcome p { color:var(--muted); line-height:1.7; font-size:14px; margin:0 auto 27px; max-width:470px; }
-.suggestions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; text-align:left; }
-.suggestion {
-  border:1px solid var(--border); background:white; padding:15px;
-  border-radius:15px; color:var(--text); text-align:left; line-height:1.5;
-}
-.suggestion:hover { border-color:#b6a6ff; background:#fbf9ff; transform:translateY(-1px); }
-.suggestion b { display:block; font-size:13px; margin-bottom:4px; }
-.suggestion small { color:var(--muted); font-size:11px; }
 .message { display:flex; gap:12px; align-items:flex-start; }
 .avatar {
   width:34px; height:34px; flex-shrink:0; border-radius:12px;
@@ -178,8 +170,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   .welcome { padding:35px 0 20px; }
   .welcome-logo { width:65px; height:65px; font-size:36px; }
   .welcome p { font-size:13px; }
-  .suggestions { grid-template-columns:1fr; }
-  .suggestion { padding:12px; }
   .composer-area { padding:8px 10px 12px; }
   .composer { border-radius:17px; padding:10px; }
   .tool-btn { padding:8px; }
@@ -210,7 +200,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
     <div class="account">
       <strong>ASSTRA AI</strong>
-      <span>Version 1.5 Flash - Prêt</span>
+      <span>Version Flash - Prêt</span>
     </div>
   </aside>
 
@@ -236,7 +226,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
         <div class="composer">
           <div class="attachment-preview" id="attachmentPreview">
             <div id="attachmentContent"></div>
-            <button id="removeAttachment">✕ Retirer</button>
+            <button id="removeAttachment" type="button">✕ Retirer</button>
           </div>
           <textarea id="prompt" rows="2" placeholder="Posez votre question à ASSTRA AI..."></textarea>
           <div class="composer-bottom">
@@ -246,7 +236,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
                 <div class="menu-pop" id="plusMenu">
                   <button data-kind="image" type="button">🖼️ Ajouter une image</button>
                   <button data-kind="camera" type="button">📷 Prendre une photo</button>
-                  <button data-kind="file" type="button">📄 Analyser un fichier</button>
                 </div>
               </div>
               <button class="tool-btn" id="clearButton" type="button">Effacer</button>
@@ -262,7 +251,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
 <input class="hidden" type="file" id="imageInput" accept="image/*">
 <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
-<input class="hidden" type="file" id="fileInput" accept=".pdf,.txt,.docx,.doc">
 
 <div class="toast" id="toast"></div>
 
@@ -278,8 +266,6 @@ const $ = (id) => document.getElementById(id);
 let currentConversation = null;
 let busy = false;
 let pendingImage = null;
-let pendingFileText = "";
-let pendingFileName = "";
 
 function newId() {
   return crypto.randomUUID
@@ -331,7 +317,7 @@ function renderMessages() {
     welcome.innerHTML = `
       <div class="welcome-logo">✦</div>
       <h1>Bonjour, je suis <span>ASSTRA AI</span></h1>
-      <p>Votre assistant intelligent. Posez vos questions, envoyez une image ou partagez un document pour commencer.</p>`;
+      <p>Votre assistant intelligent. Posez vos questions ou envoyez une image pour commencer.</p>`;
     root.appendChild(welcome);
     return;
   }
@@ -353,13 +339,6 @@ function renderMessages() {
       img.className = "attachment";
       img.src = message.image;
       bubble.appendChild(img);
-    }
-
-    if (message.fileName) {
-      const chip = document.createElement("div");
-      chip.className = "file-chip";
-      chip.textContent = "📄 " + message.fileName;
-      bubble.appendChild(chip);
     }
 
     const content = document.createElement("div");
@@ -396,11 +375,8 @@ function resizePrompt() {
 
 function clearAttachment() {
   pendingImage = null;
-  pendingFileText = "";
-  pendingFileName = "";
   $("imageInput").value = "";
   $("cameraInput").value = "";
-  $("fileInput").value = "";
   $("attachmentContent").innerHTML = "";
   $("attachmentPreview").style.display = "none";
 }
@@ -412,32 +388,69 @@ function displayAttachment() {
     const img = document.createElement("img");
     img.src = pendingImage;
     root.appendChild(img);
-  } else if (pendingFileName) {
-    root.textContent = "📄 " + pendingFileName;
   }
-  $("attachmentPreview").style.display =
-    pendingImage || pendingFileName ? "flex" : "none";
+  $("attachmentPreview").style.display = pendingImage ? "flex" : "none";
 }
 
-function dataUrlFromFile(file) {
+function compressAndReadImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("Impossible de lire ce fichier."));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1024;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => reject(new Error("Image invalide"));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("Lecture du fichier échouée"));
     reader.readAsDataURL(file);
   });
+}
+
+async function handleImageFile(file) {
+  if (!file) return;
+  try {
+    showToast("Optimisation de l'image...");
+    pendingImage = await compressAndReadImage(file);
+    displayAttachment();
+    showToast("Image prête !");
+  } catch (err) {
+    showToast(err.message);
+  }
 }
 
 async function sendMessage() {
   if (busy) return;
   const promptText = $("prompt").value.trim();
-  if (!promptText && !pendingImage && !pendingFileText) {
+  if (!promptText && !pendingImage) {
     $("prompt").focus();
     return;
   }
 
   const conversation = ensureConversation();
-  const displayText = promptText || (pendingImage ? "Analyse cette image." : "Analyse ce document.");
+  const displayText = promptText || "Analyse cette image.";
 
   if (!conversation.messages.length) {
     conversation.title = displayText.slice(0, 30);
@@ -446,9 +459,8 @@ async function sendMessage() {
 
   conversation.messages.push({
     role: "user",
-    content: displayText + (pendingFileText ? "\n\n[Document: " + pendingFileText + "]" : ""),
-    ...(pendingImage ? { image: pendingImage } : {}),
-    ...(pendingFileName ? { fileName: pendingFileName } : {})
+    content: displayText,
+    ...(pendingImage ? { image: pendingImage } : {})
   });
 
   const imageToSend = pendingImage;
@@ -495,7 +507,6 @@ async function sendMessage() {
   }
 }
 
-// Événements pour les boutons
 $("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
 $("sendButton").addEventListener("click", sendMessage);
 $("newChat").addEventListener("click", () => {
@@ -512,7 +523,6 @@ $("prompt").addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-// Menu Plus
 $("plusButton").addEventListener("click", (e) => {
   e.stopPropagation();
   $("plusMenu").classList.toggle("open");
@@ -530,15 +540,8 @@ $("plusMenu").querySelectorAll("[data-kind]").forEach(btn => {
     const k = btn.dataset.kind;
     if (k === "image") $("imageInput").click();
     if (k === "camera") $("cameraInput").click();
-    if (k === "file") $("fileInput").click();
   });
 });
-
-async function handleImageFile(file) {
-  if (!file) return;
-  pendingImage = await dataUrlFromFile(file);
-  displayAttachment();
-}
 
 $("imageInput").addEventListener("change", e => handleImageFile(e.target.files[0]));
 $("cameraInput").addEventListener("change", e => handleImageFile(e.target.files[0]));
