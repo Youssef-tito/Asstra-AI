@@ -255,6 +255,19 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
+<!-- Pop-up Modal Kbira w Wadha7a (Installer / Refuser) -->
+<div id="customInstallModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:25px; border-radius:20px; width:90%; max-width:320px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.3); font-family:Inter, sans-serif;">
+    <div style="font-size:45px; margin-bottom:10px; color:#7054f7;">✦</div>
+    <div style="font-size:18px; font-weight:bold; color:#202033; margin-bottom:8px;">Installer ASSTRA AI</div>
+    <div style="font-size:13px; color:#85859a; margin-bottom:20px;">Installez l'application sur votre téléphone pour un accès rapide et sans navigateur.</div>
+    <div style="display:flex; gap:10px;">
+      <button id="modalRefuseBtn" style="flex:1; background:#f1edff; color:#7054f7; border:0; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Refuser</button>
+      <button id="modalInstallBtn" style="flex:1; background:#7054f7; color:white; border:0; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Installer</button>
+    </div>
+  </div>
+</div>
+
 <input class="hidden" type="file" id="imageInput" accept="image/*">
 <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
 
@@ -276,43 +289,26 @@ let conversations = [];
 let recognition = null;
 let isRecording = false;
 
-// Script PWA pour afficher la bannière Installer / Refuser
+// Gestion de la Pop-up PWA (Installer / Refuser)
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  showInstallBanner();
+  $("customInstallModal").style.display = "flex";
 });
 
-function showInstallBanner() {
-  if (document.getElementById('installBanner')) return;
-  const banner = document.createElement('div');
-  banner.id = 'installBanner';
-  banner.style.cssText = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#27233a; color:white; padding:15px 20px; border-radius:15px; display:flex; gap:15px; align-items:center; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-family:Inter, sans-serif; width:90%; max-width:400px;";
-  
-  banner.innerHTML = `
-    <div style="flex:1;">
-      <div style="font-weight:bold; font-size:14px; margin-bottom:3px;">Installer ASSTRA AI</div>
-      <div style="font-size:12px; color:#b0b0c3;">Installez l'application sur votre téléphone.</div>
-    </div>
-    <button id="installAppBtn" style="background:#7054f7; color:white; border:0; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">Installer</button>
-    <button id="closeInstallBtn" style="background:transparent; color:#b0b0c3; border:0; padding:8px; cursor:pointer;">✕</button>
-  `;
-  document.body.appendChild(banner);
+$("modalInstallBtn").addEventListener("click", async () => {
+  $("customInstallModal").style.display = "none";
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  }
+});
 
-  document.getElementById('installAppBtn').addEventListener('click', async () => {
-    banner.remove();
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    }
-  });
-
-  document.getElementById('closeInstallBtn').addEventListener('click', () => {
-    banner.remove();
-  });
-}
+$("modalRefuseBtn").addEventListener("click", () => {
+  $("customInstallModal").style.display = "none";
+});
 
 function newId() {
   return crypto.randomUUID
