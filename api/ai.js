@@ -20,11 +20,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Messages are required" });
     }
 
-    const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle dotée d'un génie extraordinaire et d'une capacité d'analyse fulgurante et ultra-précise, créée par Youssef. Tu excelles dans l'analyse détaillée des images et tu te souviens parfaitement de tout le contexte. Tu maîtrises la derja tunisienne, l'arabe, le français et l'anglais.";
+    const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle ultra-intelligente, créée par Youssef. Tu maîtrises parfaitement la derja tunisienne, l'arabe, le français et l'anglais. Quand l'utilisateur te demande des actualités ou des infos récentes, réponds avec précision en derja tunisienne et en expliquant les faits de manière claire.";
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
-    // Reconstruction de l'historique texte
     for (let i = 0; i < messages.length - 1; i++) {
       const m = messages[i];
       const role = m.role === 'assistant' ? 'assistant' : 'user';
@@ -32,7 +31,6 @@ export default async function handler(req, res) {
       formattedMessages.push({ role: role, content: text });
     }
 
-    // Gestion du dernier message et de l'image
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
@@ -40,7 +38,7 @@ export default async function handler(req, res) {
       formattedMessages.push({
         role: "user",
         content: [
-          { type: "text", text: userText || "Analyse cette image avec précision." },
+          { type: "text", text: userText || "Analyse cette image." },
           { type: "image_url", image_url: { url: image } }
         ]
       });
@@ -51,7 +49,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Appel à OpenRouter avec routage automatique
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -63,17 +60,17 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "openrouter/auto",
         messages: formattedMessages,
-        temperature: 0.4
+        temperature: 0.5
       })
     });
 
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
-      throw new Error(data.error?.message || "Erreur lors de la communication avec OpenRouter.");
+      throw new Error(data.error?.message || "Erreur OpenRouter");
     }
 
-    const aiReply = data.choices?.[0]?.message?.content || "Désolé, je n'ai pas pu générer de réponse.";
+    const aiReply = data.choices?.[0]?.message?.content || "Désolé, pas de réponse.";
 
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: aiReply } }],
