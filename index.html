@@ -562,7 +562,6 @@ async function generateAiImage(promptText) {
 
   try {
     const encoded = encodeURIComponent(promptText);
-    // Utilisation d'un timestamp unique pour éviter le cache et du service gen.pollinations.ai rapide
     const randomSeed = Math.floor(Math.random() * 1000000);
     const imageUrl = `https://gen.pollinations.ai/image/${encoded}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
 
@@ -646,7 +645,6 @@ async function sendMessage() {
   $("sendButton").disabled = true;
   showTyping();
 
-  // Detection plus large w exacte pour la génération d'images AI
   const isImageReq = /(a3meli|a3mel|sana3|génère|genere|draw|صمم|تصوير|taswira|tasswira|image|photo|picture)/i.test(displayText) && !imageToSend;
 
   if (isImageReq) {
