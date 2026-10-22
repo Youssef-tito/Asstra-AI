@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#7054f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ASSTRA AI">
 <title>ASSTRA AI - Assistant Intelligent</title>
 
 <style>
@@ -262,7 +265,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 <script>
 "use strict";
 
-const API_URL = "/api/ai";
 const $ = (id) => document.getElementById(id);
 
 let currentConversation = null;
@@ -563,7 +565,6 @@ async function generateAiImage(promptText) {
   try {
     const encoded = encodeURIComponent(promptText);
     const randomSeed = Math.floor(Math.random() * 1000000);
-    // Endpoint de Pollinations AI avec keywords pour un rendu vibrant & détaillé
     const imageUrl = `https://image.pollinations.ai/prompt/${encoded}%20beautiful%20vibrant%20detailed%20masterpiece?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
 
     const responseContent = `Tfadhel, haou el taswira elli tlobt'ha bel AI:\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" loading="lazy" />`;
@@ -662,21 +663,14 @@ async function sendMessage() {
   }
 
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: conversation.messages,
-        image: imageToSend || undefined,
-        title: conversation.title
-      })
-    });
+    // Utilisation directe du service gratuit text.pollinations.ai sans backend!
+    const encodedPrompt = encodeURIComponent(`Tu es ASSTRA AI, un assistant intelligent, amical et très rapide créé par Youssef. Réponds directement en restant concis et clair: ${displayText}`);
+    const freeTextUrl = `https://text.pollinations.ai/${encodedPrompt}`;
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Erreur serveur");
+    const response = await fetch(freeTextUrl);
+    const reply = await response.text();
 
-    const reply = data.choices?.[0]?.message?.content;
-    if (!reply) throw new Error("Pas de réponse du modèle.");
+    if (!response.ok || !reply) throw new Error("Service temporairement indisponible.");
 
     conversation.messages.push({ role: "assistant", content: reply });
     removeTyping();
@@ -686,7 +680,7 @@ async function sendMessage() {
     removeTyping();
     conversation.messages.push({
       role: "assistant",
-      content: "Erreur : " + error.message
+      content: "ASSTRA AI : Une erreur s'est produite lors du traitement de votre demande."
     });
     renderMessages();
   } finally {
