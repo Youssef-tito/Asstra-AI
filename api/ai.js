@@ -20,7 +20,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Messages are required" });
     }
 
-    const systemInstruction = "Tu es ASSTRA AI, une intelligence artificielle ultra-intelligente, créée par Youssef. Tu maîtrises parfaitement la derja tunisienne, l'arabe, le français et l'anglais. Quand l'utilisateur te demande des actualités ou des infos récentes, réponds avec précision en derja tunisienne et en expliquant les faits de manière claire.";
+    const lastMessage = messages[messages.length - 1];
+    const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
+
+    const systemInstruction = `Tu es ASSTRA AI, une intelligence artificielle créée par Youssef. 
+Tu as la capacité de chercher sur Internet pour donner les actualités exactes et vérifiées.
+RÈGLE TRÈS IMPORTANTE SUR LA LANGUE : Tu dois TOUJOURS répondre dans la EXACTE MÊME LANGUE ou le MÊME DIALECTE que l'utilisateur utilise dans son dernier message (derja tunisienne, français, arabe classique...).`;
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
@@ -30,9 +35,6 @@ export default async function handler(req, res) {
       const text = m.content || m.text || "";
       formattedMessages.push({ role: role, content: text });
     }
-
-    const lastMessage = messages[messages.length - 1];
-    const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
     if (image && typeof image === 'string' && image.startsWith('data:image')) {
       formattedMessages.push({
@@ -49,6 +51,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Utilisation de Perplexity Sonar pour activer le Web Search automatique
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -58,9 +61,9 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openrouter/auto",
+        model: "perplexity/sonar", 
         messages: formattedMessages,
-        temperature: 0.5
+        temperature: 0.3
       })
     });
 
