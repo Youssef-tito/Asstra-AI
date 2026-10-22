@@ -563,7 +563,8 @@ async function generateAiImage(promptText) {
   try {
     const encoded = encodeURIComponent(promptText);
     const randomSeed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://gen.pollinations.ai/image/${encoded}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
+    // Utilisation du endpoint correct et stable de Pollinations AI
+    const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
 
     const responseContent = `Tfadhel, haou el taswira elli tlobt'ha bel AI:\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" loading="lazy" />`;
 
