@@ -197,7 +197,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
     <button class="new-chat" id="newChat">＋ &nbsp; Nouvelle discussion</button>
     
-    <div class="side-label">RÉCENT</div>
+    <!-- Bouton Installer l'App direct -->
+    <button id="manualInstallBtn" style="width:100%; margin-top:5px; background:linear-gradient(135deg,#9377ff,#6240ed); color:white; border:0; padding:11px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(112,84,247,0.3);">📱 Installer l'App</button>
+
+    <div class="side-label" style="margin-top:10px;">RÉCENT</div>
     <div class="history" id="history">
       <div style="padding:10px;color:#aaa;font-size:12px">Vos discussions s'affichent ici.</div>
     </div>
@@ -255,19 +258,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
-<!-- Pop-up Modal Kbira w Wadha7a (Installer / Refuser) -->
-<div id="customInstallModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:white; padding:25px; border-radius:20px; width:90%; max-width:320px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.3); font-family:Inter, sans-serif;">
-    <div style="font-size:45px; margin-bottom:10px; color:#7054f7;">✦</div>
-    <div style="font-size:18px; font-weight:bold; color:#202033; margin-bottom:8px;">Installer ASSTRA AI</div>
-    <div style="font-size:13px; color:#85859a; margin-bottom:20px;">Installez l'application sur votre téléphone pour un accès rapide et sans navigateur.</div>
-    <div style="display:flex; gap:10px;">
-      <button id="modalRefuseBtn" style="flex:1; background:#f1edff; color:#7054f7; border:0; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Refuser</button>
-      <button id="modalInstallBtn" style="flex:1; background:#7054f7; color:white; border:0; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Installer</button>
-    </div>
-  </div>
-</div>
-
 <input class="hidden" type="file" id="imageInput" accept="image/*">
 <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
 
@@ -289,25 +279,21 @@ let conversations = [];
 let recognition = null;
 let isRecording = false;
 
-// Gestion de la Pop-up PWA (Installer / Refuser)
-let deferredPrompt;
+// Gestion de l'installation manuelle via le bouton
+let manualPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  deferredPrompt = e;
-  $("customInstallModal").style.display = "flex";
+  manualPrompt = e;
 });
 
-$("modalInstallBtn").addEventListener("click", async () => {
-  $("customInstallModal").style.display = "none";
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
+$("manualInstallBtn").addEventListener('click', async () => {
+  if (manualPrompt) {
+    manualPrompt.prompt();
+    const { outcome } = await manualPrompt.userChoice;
+    manualPrompt = null;
+  } else {
+    showToast("Utilisez le menu (3 points) de Chrome -> 'Ajouter à l'écran d'accueil'.");
   }
-});
-
-$("modalRefuseBtn").addEventListener("click", () => {
-  $("customInstallModal").style.display = "none";
 });
 
 function newId() {
