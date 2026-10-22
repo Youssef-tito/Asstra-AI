@@ -113,7 +113,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .bubble p:last-child { margin-bottom:0; }
 .bubble pre { overflow:auto; background:#211c35; color:#eee7ff; padding:13px; border-radius:10px; }
 .bubble img.attachment { display:block; max-width:min(320px,100%); max-height:300px; object-fit:contain; border-radius:12px; margin-bottom:10px; }
-.bubble img.generated-ai-img { display:block; width:100%; max-width:400px; border-radius:14px; margin-top:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
+.bubble img.generated-ai-img { display:block; width:100%; max-width:420px; border-radius:14px; margin-top:10px; box-shadow:0 6px 20px rgba(112,84,247,0.15); border:1px solid var(--border); }
 .typing { display:flex; gap:5px; padding:7px; }
 .typing span { width:6px; height:6px; border-radius:50%; background:#8a72ef; animation:bounce 1s infinite; }
 .typing span:nth-child(2) { animation-delay:.15s; }
@@ -556,7 +556,38 @@ async function handleImageFile(file) {
   }
 }
 
-// Fonction de génération d'image par AI
+// Fonction de génération automatique d'images AI
+async function generateAiImage(promptText) {
+  const conversation = ensureConversation();
+  showToast("Génération de l'image AI...");
+
+  try {
+    const encoded = encodeURIComponent(promptText);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
+
+    const responseContent = `Tfadhel, haou el taswira elli tlobt'ha bel AI:\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" />`;
+
+    removeTyping();
+    conversation.messages.push({
+      role: "assistant",
+      content: responseContent
+    });
+
+    renderMessages();
+    saveLocalConversations();
+  } catch (err) {
+    removeTyping();
+    conversation.messages.push({
+      role: "assistant",
+      content: "Erreur lors de la génération de l'image : " + err.message
+    });
+    renderMessages();
+  } finally {
+    busy = false;
+    $("sendButton").disabled = false;
+  }
+}
+
 async function generateAiImagePrompt() {
   const userPrompt = prompt("Décrivez l'image que vous souhaitez générer avec l'AI :");
   if (!userPrompt || !userPrompt.trim()) return;
@@ -577,33 +608,7 @@ async function generateAiImagePrompt() {
   renderMessages();
   showTyping();
   busy = true;
-  showToast("Génération de l'image AI en cours...");
-
-  try {
-    const encoded = encodeURIComponent(promptText);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
-
-    const responseContent = `Voici l'image générée par l'AI pour **"${promptText}"** :\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" />`;
-
-    removeTyping();
-    conversation.messages.push({
-      role: "assistant",
-      content: responseContent
-    });
-
-    renderMessages();
-    saveLocalConversations();
-    showToast("Image générée avec succès !");
-  } catch (err) {
-    removeTyping();
-    conversation.messages.push({
-      role: "assistant",
-      content: "Erreur lors de la génération de l'image : " + err.message
-    });
-    renderMessages();
-  } finally {
-    busy = false;
-  }
+  generateAiImage(promptText);
 }
 
 async function sendMessage() {
@@ -639,6 +644,16 @@ async function sendMessage() {
   busy = true;
   $("sendButton").disabled = true;
   showTyping();
+
+  // Détection si l'utilisateur demande une génération d'image dans son message
+  const isImageReq = /(a3meli|a3mel|sana3|génère|genere|draw|صمم|صورة|تادي|taswira|tasswira|image|photo)/i.test(displayText) &&
+                    /(taswira|tasswirat|tasswira|image|photo|صورة|رسمة|picture)/i.test(displayText) && !imageToSend;
+
+  if (isImageReq) {
+    const cleanPrompt = displayText.replace(/(a3meli|a3mel|sana3|génère|genere|draw|صمم|تصوير|taswira|tasswira|image|photo|de|une|d'une)/gi, '').trim();
+    generateAiImage(cleanPrompt || displayText);
+    return;
+  }
 
   try {
     const response = await fetch(API_URL, {
