@@ -562,9 +562,11 @@ async function generateAiImage(promptText) {
 
   try {
     const encoded = encodeURIComponent(promptText);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
+    // Utilisation d'un timestamp unique pour éviter le cache et du service gen.pollinations.ai rapide
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://gen.pollinations.ai/image/${encoded}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
 
-    const responseContent = `Tfadhel, haou el taswira elli tlobt'ha bel AI:\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" />`;
+    const responseContent = `Tfadhel, haou el taswira elli tlobt'ha bel AI:\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" loading="lazy" />`;
 
     removeTyping();
     conversation.messages.push({
