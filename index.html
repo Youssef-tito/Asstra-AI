@@ -197,7 +197,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
     <button class="new-chat" id="newChat">＋ &nbsp; Nouvelle discussion</button>
     
-    <!-- Bouton Installer l'App direct -->
+    <!-- Bouton Installer l'App -->
     <button id="manualInstallBtn" style="width:100%; margin-top:5px; background:linear-gradient(135deg,#9377ff,#6240ed); color:white; border:0; padding:11px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(112,84,247,0.3);">📱 Installer l'App</button>
 
     <div class="side-label" style="margin-top:10px;">RÉCENT</div>
@@ -258,6 +258,31 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
+<!-- Modal Guide Visuel b el 5otowat (Étapes d'installation) -->
+<div id="installGuideModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; font-family:Inter, sans-serif;">
+  <div style="background:white; padding:22px; border-radius:22px; width:90%; max-width:340px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.4);">
+    <div style="font-size:30px; margin-bottom:5px;">📱</div>
+    <div style="font-size:17px; font-weight:bold; color:#202033; margin-bottom:12px;">Comment installer ASSTRA AI</div>
+    
+    <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-bottom:20px; font-size:13px; color:#55556b;">
+      <div style="display:flex; align-items:center; gap:10px; background:#f8f7fc; padding:10px; border-radius:12px;">
+        <span style="background:#7054f7; color:white; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:bold; flex-shrink:0;">1</span>
+        <span>Cliqe 3la <b>الثلاثة نقاط (⋮)</b> el fouq 3la ymin f Chrome[cite: 5].</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; background:#f8f7fc; padding:10px; border-radius:12px;">
+        <span style="background:#7054f7; color:white; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:bold; flex-shrink:0;">2</span>
+        <span>I5tar <b>"Ajouter à l'écran d'accueil"</b> wala <b>"Installer l'application"</b>.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; background:#f8f7fc; padding:10px; border-radius:12px;">
+        <span style="background:#7054f7; color:white; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:bold; flex-shrink:0;">3</span>
+        <span>Cliqe 3la <b>Ajouter</b> w tetssab mrigela fel écran!</span>
+      </div>
+    </div>
+
+    <button id="closeGuideBtn" style="width:100%; background:#7054f7; color:white; border:0; padding:11px; border-radius:12px; font-weight:bold; cursor:pointer;">Fermer / فهمت</button>
+  </div>
+</div>
+
 <input class="hidden" type="file" id="imageInput" accept="image/*">
 <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
 
@@ -279,7 +304,6 @@ let conversations = [];
 let recognition = null;
 let isRecording = false;
 
-// Gestion de l'installation manuelle via le bouton
 let manualPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -292,8 +316,13 @@ $("manualInstallBtn").addEventListener('click', async () => {
     const { outcome } = await manualPrompt.userChoice;
     manualPrompt = null;
   } else {
-    showToast("Utilisez le menu (3 points) de Chrome -> 'Ajouter à l'écran d'accueil'.");
+    // Ken el tlifoun mna3 el prompt el otomatik, n7ellou el Guide Visuel b el 5otowat
+    $("installGuideModal").style.display = "flex";
   }
+});
+
+$("closeGuideBtn").addEventListener('click', () => {
+  $("installGuideModal").style.display = "none";
 });
 
 function newId() {
