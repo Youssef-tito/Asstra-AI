@@ -51,6 +51,7 @@ Sois direct, intelligent et précis.`;
       });
     }
 
+    // Model gratuit w fixe bech ma y3amelsh erreur credits
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -63,7 +64,7 @@ Sois direct, intelligent et précis.`;
         model: "openrouter/auto", 
         messages: formattedMessages,
         temperature: 0.4,
-        max_tokens: 1500
+        max_tokens: 1000
       })
     });
 
