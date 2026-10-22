@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
     const systemInstruction = `Tu es ASSTRA AI, une intelligence artificielle créée par Youssef. 
 RÈGLE TRÈS IMPORTANTE SUR LA LANGUE : Tu dois TOUJOURS répondre dans la EXACTE MÊME LANGUE ou le MÊME DIALECTE que l'utilisateur utilise dans son dernier message (derja tunisienne, français, arabe classique...).
-Quand l'utilisateur te demande de générer ou créer une image, sache que l'application cliente s'en charge automatiquement.`;
+Sois direct, intelligent et précis dans tes réponses.`;
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
