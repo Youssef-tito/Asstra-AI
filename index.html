@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" content="#7054f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ASSTRA AI">
+<link rel="manifest" href="/manifest.json">
 <title>ASSTRA AI - Assistant Intelligent</title>
 
 <style>
@@ -272,6 +275,44 @@ let pendingImage = null;
 let conversations = [];
 let recognition = null;
 let isRecording = false;
+
+// Script PWA pour afficher la bannière Installer / Refuser
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('installBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.style.cssText = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#27233a; color:white; padding:15px 20px; border-radius:15px; display:flex; gap:15px; align-items:center; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-family:Inter, sans-serif; width:90%; max-width:400px;";
+  
+  banner.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-weight:bold; font-size:14px; margin-bottom:3px;">Installer ASSTRA AI</div>
+      <div style="font-size:12px; color:#b0b0c3;">Installez l'application sur votre téléphone.</div>
+    </div>
+    <button id="installAppBtn" style="background:#7054f7; color:white; border:0; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">Installer</button>
+    <button id="closeInstallBtn" style="background:transparent; color:#b0b0c3; border:0; padding:8px; cursor:pointer;">✕</button>
+  `;
+  document.body.appendChild(banner);
+
+  document.getElementById('installAppBtn').addEventListener('click', async () => {
+    banner.remove();
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    }
+  });
+
+  document.getElementById('closeInstallBtn').addEventListener('click', () => {
+    banner.remove();
+  });
+}
 
 function newId() {
   return crypto.randomUUID
