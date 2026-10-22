@@ -556,7 +556,6 @@ async function handleImageFile(file) {
   }
 }
 
-// Fonction de génération automatique d'images AI
 async function generateAiImage(promptText) {
   const conversation = ensureConversation();
   showToast("Génération de l'image AI...");
@@ -645,13 +644,19 @@ async function sendMessage() {
   $("sendButton").disabled = true;
   showTyping();
 
-  // Détection si l'utilisateur demande une génération d'image dans son message
-  const isImageReq = /(a3meli|a3mel|sana3|génère|genere|draw|صمم|صورة|تادي|taswira|tasswira|image|photo)/i.test(displayText) &&
-                    /(taswira|tasswirat|tasswira|image|photo|صورة|رسمة|picture)/i.test(displayText) && !imageToSend;
+  // Detection plus large w exacte pour la génération d'images AI
+  const isImageReq = /(a3meli|a3mel|sana3|génère|genere|draw|صمم|تصوير|taswira|tasswira|image|photo|picture)/i.test(displayText) && !imageToSend;
 
   if (isImageReq) {
-    const cleanPrompt = displayText.replace(/(a3meli|a3mel|sana3|génère|genere|draw|صمم|تصوير|taswira|tasswira|image|photo|de|une|d'une)/gi, '').trim();
-    generateAiImage(cleanPrompt || displayText);
+    let cleanPrompt = displayText
+      .replace(/(a3meli|a3mel|sana3|génère|genere|draw|صمم|taswira|tasswira|image|photo|picture|de|une|d'une|mta3)/gi, '')
+      .trim();
+    
+    if (cleanPrompt.toLowerCase().includes("fa4a2") || cleanPrompt.toLowerCase().includes("fadae")) {
+      cleanPrompt = "outer space galaxy astronaut fantasy wallpaper 8k";
+    }
+
+    generateAiImage(cleanPrompt || "outer space galaxy");
     return;
   }
 
