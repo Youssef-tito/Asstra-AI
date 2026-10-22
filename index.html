@@ -113,6 +113,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .bubble p:last-child { margin-bottom:0; }
 .bubble pre { overflow:auto; background:#211c35; color:#eee7ff; padding:13px; border-radius:10px; }
 .bubble img.attachment { display:block; max-width:min(320px,100%); max-height:300px; object-fit:contain; border-radius:12px; margin-bottom:10px; }
+.bubble img.generated-ai-img { display:block; width:100%; max-width:400px; border-radius:14px; margin-top:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
 .typing { display:flex; gap:5px; padding:7px; }
 .typing span { width:6px; height:6px; border-radius:50%; background:#8a72ef; animation:bounce 1s infinite; }
 .typing span:nth-child(2) { animation-delay:.15s; }
@@ -148,7 +149,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .hidden { display:none!important; }
 .menu { position:relative; }
 .menu-pop {
-  display:none; position:absolute; bottom:48px; left:0; z-index:20; width:210px;
+  display:none; position:absolute; bottom:48px; left:0; z-index:20; width:220px;
   padding:7px; border:1px solid var(--border); border-radius:14px;
   background:white; box-shadow:var(--shadow);
 }
@@ -235,6 +236,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
                 <div class="menu-pop" id="plusMenu">
                   <button data-kind="image" type="button">🖼️ Ajouter une image</button>
                   <button data-kind="camera" type="button">📷 Prendre une photo</button>
+                  <button data-kind="gen-image" type="button">✨ Générer une image AI</button>
                 </div>
               </div>
               <button class="tool-btn" id="voiceButton" type="button" title="Saisie vocale">🎙️ Vocal</button>
@@ -459,7 +461,7 @@ function setupSpeechRecognition() {
   recognition = new SpeechRecognition();
   recognition.continuous = false;
   recognition.interimResults = true;
-  recognition.lang = "fr-FR"; // Reconnaissance en français ou derja
+  recognition.lang = "fr-FR";
 
   recognition.onstart = () => {
     isRecording = true;
@@ -551,6 +553,56 @@ async function handleImageFile(file) {
     showToast("Image prête !");
   } catch (err) {
     showToast(err.message);
+  }
+}
+
+// Fonction de génération d'image par AI
+async function generateAiImagePrompt() {
+  const userPrompt = prompt("Décrivez l'image que vous souhaitez générer avec l'AI :");
+  if (!userPrompt || !userPrompt.trim()) return;
+
+  const conversation = ensureConversation();
+  const promptText = userPrompt.trim();
+
+  if (!conversation.messages.length) {
+    conversation.title = "✨ Image: " + promptText.slice(0, 20);
+    updateTitle();
+  }
+
+  conversation.messages.push({
+    role: "user",
+    content: "✨ Génère une image de : " + promptText
+  });
+
+  renderMessages();
+  showTyping();
+  busy = true;
+  showToast("Génération de l'image AI en cours...");
+
+  try {
+    const encoded = encodeURIComponent(promptText);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
+
+    const responseContent = `Voici l'image générée par l'AI pour **"${promptText}"** :\n\n<img src="${imageUrl}" class="generated-ai-img" alt="AI Image" />`;
+
+    removeTyping();
+    conversation.messages.push({
+      role: "assistant",
+      content: responseContent
+    });
+
+    renderMessages();
+    saveLocalConversations();
+    showToast("Image générée avec succès !");
+  } catch (err) {
+    removeTyping();
+    conversation.messages.push({
+      role: "assistant",
+      content: "Erreur lors de la génération de l'image : " + err.message
+    });
+    renderMessages();
+  } finally {
+    busy = false;
   }
 }
 
@@ -659,6 +711,7 @@ $("plusMenu").querySelectorAll("[data-kind]").forEach(btn => {
     const k = btn.dataset.kind;
     if (k === "image") $("imageInput").click();
     if (k === "camera") $("cameraInput").click();
+    if (k === "gen-image") generateAiImagePrompt();
   });
 });
 
