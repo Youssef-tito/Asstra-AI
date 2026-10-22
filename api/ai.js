@@ -4,13 +4,12 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { messages, image, title } = req.body;
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    const tavilyApiKey = process.env.TAVILY_API_KEY;
 
     if (!openRouterApiKey) {
       return res.status(500).json({ error: "OPENROUTER_API_KEY n'est pas configurée dans Vercel." });
@@ -23,9 +22,36 @@ export default async function handler(req, res) {
     const lastMessage = messages[messages.length - 1];
     const userText = lastMessage ? (lastMessage.content || lastMessage.text || "") : "";
 
+    let searchContext = "";
+
+    // Si le message demande des actualités / informations récentes, on cherche sur Tavily
+    const needsSearch = /(akhbar|a5bar|lyoum|actualité|news|tounes|aujourd'hui|sar|event)/i.test(userText);
+    
+    if (needsSearch && tavilyApiKey) {
+      try {
+        const searchRes = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: tavilyApiKey,
+            query: userText,
+            search_depth: "basic",
+            max_results: 3
+          })
+        });
+        const searchData = await searchRes.json();
+        if (searchData.results && searchData.results.length > 0) {
+          searchContext = "\n\nINFORMATIONS RÉCENTES EN DIRECT DE GOOGLE/INTERNET:\n" +
+            searchData.results.map(r => `- ${r.title}: ${r.content}`).join("\n");
+        }
+      } catch (err) {
+        console.error("Tavily Search Error:", err);
+      }
+    }
+
     const systemInstruction = `Tu es ASSTRA AI, une intelligence artificielle créée par Youssef. 
 RÈGLE TRÈS IMPORTANTE SUR LA LANGUE : Tu dois TOUJOURS répondre dans la EXACTE MÊME LANGUE ou le MÊME DIALECTE que l'utilisateur utilise dans son dernier message (derja tunisienne, français, arabe classique...).
-Sois direct, intelligent et précis.`;
+Utilise les informations en direct d'Internet fournies ci-dessous pour donner des réponses réelles et vérifiées sur les actualités.${searchContext}`;
 
     const formattedMessages = [{ role: "system", content: systemInstruction }];
 
@@ -47,11 +73,10 @@ Sois direct, intelligent et précis.`;
     } else {
       formattedMessages.push({
         role: "user",
-        content: userText || "Analyse cette demande."
+        content: userText
       });
     }
 
-    // Model gratuit w fixe bech ma y3amelsh erreur credits
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -64,15 +89,12 @@ Sois direct, intelligent et précis.`;
         model: "openrouter/auto", 
         messages: formattedMessages,
         temperature: 0.4,
-        max_tokens: 1000
+        max_tokens: 1200
       })
     });
 
     const data = await apiResponse.json();
-
-    if (!apiResponse.ok) {
-      throw new Error(data.error?.message || "Erreur OpenRouter");
-    }
+    if (!apiResponse.ok) throw new Error(data.error?.message || "Erreur OpenRouter");
 
     const aiReply = data.choices?.[0]?.message?.content || "Désolé, pas de réponse.";
 
