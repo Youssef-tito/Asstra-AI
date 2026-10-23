@@ -1,10 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -16,35 +9,56 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     if (!apiKey) {
-      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie sur Vercel." });
+      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie." });
     }
 
     const body = req.body || {};
     const { action, email, password, messages, title } = body;
 
-    // --- 1. HANDLING AUTHENTICATION (SIGNUP / LOGIN) ---
+    // --- 1. AUTHENTICATION (SIGNUP / LOGIN) ---
     if (action === "auth") {
       if (!email || !password) {
         return res.status(400).json({ error: "Email et mot de passe requis." });
       }
 
-      let { data: user } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      if (!supabaseUrl || !supabaseKey) {
+        return res.status(500).json({ error: "Supabase n'est pas configuré dans Vercel." });
+      }
+
+      // Fetch user from Supabase REST API
+      const fetchRes = await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
+        headers: {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`
+        }
+      });
+      const users = await fetchRes.json();
+      const user = Array.isArray(users) && users.length > 0 ? users[0] : null;
 
       if (body.isSignUp) {
         if (user) {
           return res.status(400).json({ error: "Ce compte existe déjà. Veuillez vous connecter." });
         }
-        const { error: insertErr } = await supabase.from('users').insert([{
-          email,
-          password,
-          questions_count: 0
-        }]);
-        if (insertErr) return res.status(500).json({ error: "Erreur lors de la création du compte." });
+
+        // Insert new user
+        const insertRes = await fetch(`${supabaseUrl}/rest/v1/users`, {
+          method: "POST",
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ email, password, questions_count: 0 })
+        });
+
+        if (!insertRes.ok) {
+          return res.status(500).json({ error: "Erreur lors de la création du compte." });
+        }
 
         return res.status(200).json({ success: true, email, message: "Compte créé avec succès !" });
       } else {
@@ -55,45 +69,62 @@ export default async function handler(req, res) {
       }
     }
 
-    // --- 2. HANDLING AI CHAT & QUOTA ---
+    // --- 2. AI CHAT & QUOTA CONTROL ---
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Aucun message reçu." });
     }
 
-    // Checking & Updating User Quota (If User is logged in)
-    if (email) {
-      let { data: user } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+    // Check & update user quota via Supabase REST API
+    if (email && supabaseUrl && supabaseKey) {
+      try {
+        const fetchRes = await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`
+          }
+        });
+        const users = await fetchRes.json();
+        const user = Array.isArray(users) && users.length > 0 ? users[0] : null;
 
-      if (user) {
-        const now = new Date();
-        const lastReset = new Date(user.last_reset_time || now);
-        const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
+        if (user) {
+          const now = new Date();
+          const lastReset = new Date(user.last_reset_time || now);
+          const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
 
-        // Reset Quota after 24 Hours
-        if (hoursPassed >= 24) {
-          await supabase
-            .from('users')
-            .update({ questions_count: 0, last_reset_time: now.toISOString() })
-            .eq('email', email);
-          user.questions_count = 0;
-        }
+          let currentCount = user.questions_count || 0;
 
-        // Limit Check (30 Questions / 24h)
-        if (user.questions_count >= 30) {
-          return res.status(429).json({ 
-            error: "⚠️ Limite atteinte (30 questions / 24h). Revenez plus tard !" 
+          if (hoursPassed >= 24) {
+            currentCount = 0;
+            await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
+              method: "PATCH",
+              headers: {
+                "apikey": supabaseKey,
+                "Authorization": `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ questions_count: 0, last_reset_time: now.toISOString() })
+            });
+          }
+
+          if (currentCount >= 30) {
+            return res.status(429).json({ 
+              error: "⚠️ Limite atteinte (30 questions / 24h). Revenez plus tard !" 
+            });
+          }
+
+          // Increment question count
+          await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": supabaseKey,
+              "Authorization": `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ questions_count: currentCount + 1 })
           });
         }
-
-        // Increment count
-        await supabase
-          .from('users')
-          .update({ questions_count: (user.questions_count || 0) + 1 })
-          .eq('email', email);
+      } catch (e) {
+        console.warn("Supabase Quota Check Error:", e);
       }
     }
 
