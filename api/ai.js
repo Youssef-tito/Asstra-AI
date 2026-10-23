@@ -17,53 +17,80 @@ export default async function handler(req, res) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie sur Vercel." });
+      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie." });
     }
 
     const body = req.body || {};
-    const messages = body.messages || [];
-    const userEmail = body.email;
+    const { action, email, password, messages, title } = body;
 
+    // --- Action: AUTHENTIFICATION (LOGIN / SIGNUP) ---
+    if (action === "auth") {
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email et mot de passe requis." });
+      }
+
+      let { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (body.isSignUp) {
+        if (user) {
+          return res.status(400).json({ error: "Ce compte existe déjà. Veuillez vous connecter." });
+        }
+        const { error: insertErr } = await supabase.from('users').insert([{
+          email,
+          password,
+          questions_count: 0
+        }]);
+        if (insertErr) return res.status(500).json({ error: "Erreur lors de la création du compte." });
+
+        return res.status(200).json({ success: true, email, message: "Compte créé avec succès !" });
+      } else {
+        if (!user || user.password !== password) {
+          return res.status(401).json({ error: "Email ou mot de passe incorrect." });
+        }
+        return res.status(200).json({ success: true, email, message: "Connecté avec succès !" });
+      }
+    }
+
+    // --- Action: CHAT AI WITH QUOTA CHECK ---
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Aucun message reçu." });
     }
 
-    // التحقق من الـ Quota فقط إذا قام المستخدم بإدخال إيميله
-    if (userEmail) {
-      let { data: user, error: fetchError } = await supabase
+    if (email) {
+      let { data: user } = await supabase
         .from('users')
         .select('*')
-        .eq('email', userEmail)
+        .eq('email', email)
         .single();
 
-      // إذا المستخدم غير موجود في الجدول، نقوم بإنشائه تلقائياً
-      if (!user) {
-        await supabase.from('users').insert([{ email: userEmail, password: 'user', questions_count: 0 }]);
-        user = { questions_count: 0, last_reset_time: new Date().toISOString() };
-      }
+      if (user) {
+        const now = new Date();
+        const lastReset = new Date(user.last_reset_time || now);
+        const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
 
-      const now = new Date();
-      const lastReset = new Date(user.last_reset_time);
-      const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
+        if (hoursPassed >= 24) {
+          await supabase
+            .from('users')
+            .update({ questions_count: 0, last_reset_time: now.toISOString() })
+            .eq('email', email);
+          user.questions_count = 0;
+        }
 
-      if (hoursPassed >= 24) {
+        if (user.questions_count >= 30) {
+          return res.status(429).json({ 
+            error: "⚠️ 30 questions épuisées pour aujourd'hui ! Revenez après 24h." 
+          });
+        }
+
         await supabase
           .from('users')
-          .update({ questions_count: 0, last_reset_time: now.toISOString() })
-          .eq('email', userEmail);
-        user.questions_count = 0;
+          .update({ questions_count: (user.questions_count || 0) + 1 })
+          .eq('email', email);
       }
-
-      if (user.questions_count >= 30) {
-        return res.status(429).json({ 
-          error: "⚠️ لقد استنفدت الحد الأقصى (30 سؤال لكل 24 ساعة). يرجى العودة لاحقاً أو غداً." 
-        });
-      }
-
-      await supabase
-        .from('users')
-        .update({ questions_count: (user.questions_count || 0) + 1 })
-        .eq('email', userEmail);
     }
 
     const formattedMessages = [
@@ -90,21 +117,14 @@ export default async function handler(req, res) {
     });
 
     const data = await apiResponse.json();
-
     if (!apiResponse.ok) {
-      return res.status(502).json({ 
-        error: `OpenRouter Error (${apiResponse.status}): ${data.error?.message || JSON.stringify(data)}` 
-      });
+      return res.status(502).json({ error: `OpenRouter Error: ${data.error?.message || "Error"}` });
     }
 
     const reply = data.choices?.[0]?.message?.content;
-    if (!reply) {
-      return res.status(502).json({ error: "Erreur: Le modèle n'a renvoyé aucune réponse." });
-    }
-
     return res.status(200).json({
       choices: [{ message: { role: "assistant", content: reply } }],
-      title: body.title || "Discussion"
+      title: title || "Discussion"
     });
 
   } catch (err) {
