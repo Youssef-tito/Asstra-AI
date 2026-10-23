@@ -1549,30 +1549,30 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       }
     });
 
-    elements.headerInstallBtn.addEventListener("click", () => {
+    const triggerInstall = async () => {
+      elements.installBackdrop.classList.remove("visible");
+
       if (installPrompt) {
         installPrompt.prompt();
+        try {
+          const { outcome } = await installPrompt.userChoice;
+          if (outcome === "accepted") {
+            showToast("Installation en cours...");
+          }
+        } catch (e) {}
+        installPrompt = null;
       } else {
-        elements.installBackdrop.classList.add("visible");
+        // Redirection Chrome pour déclencher l'installation directe
+        window.location.href = "intent://" + window.location.host + window.location.pathname + "#Intent;scheme=https;package=com.android.chrome;end";
       }
-    });
+    };
+
+    elements.acceptInstall.addEventListener("click", triggerInstall);
+    elements.headerInstallBtn.addEventListener("click", triggerInstall);
 
     elements.refuseInstall.addEventListener("click", () => {
       elements.installBackdrop.classList.remove("visible");
       sessionStorage.setItem("asstra_install_refused", "true");
-    });
-
-    elements.acceptInstall.addEventListener("click", async () => {
-      elements.installBackdrop.classList.remove("visible");
-
-      if (installPrompt) {
-        installPrompt.prompt();
-        try { await installPrompt.userChoice; } catch {}
-        installPrompt = null;
-      } else {
-        // Fallback direct redirection
-        window.location.href = "googlechrome://navigate?url=" + encodeURIComponent(window.location.href);
-      }
     });
 
     window.addEventListener("appinstalled", () => {
@@ -1584,7 +1584,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       if (!sessionStorage.getItem("asstra_install_refused")) {
         setTimeout(() => {
           elements.installBackdrop.classList.add("visible");
-        }, 1200);
+        }, 1000);
       }
     }
   }
