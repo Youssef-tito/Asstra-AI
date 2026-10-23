@@ -1620,6 +1620,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     const triggerInstall = async () => {
       elements.installBackdrop.classList.remove("visible");
 
+      // 1. Android / Chrome / Windows PWA Install Prompt
       if (installPrompt) {
         installPrompt.prompt();
         try {
@@ -1629,9 +1630,18 @@ button:disabled { opacity: .55; cursor: not-allowed; }
           }
         } catch (e) {}
         installPrompt = null;
-      } else {
-        window.location.href = "intent://" + window.location.host + window.location.pathname + "#Intent;scheme=https;package=com.android.chrome;end";
+        return;
       }
+
+      // 2. iOS / Safari Device Detection
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        showToast("Pour installer sur iPhone : appuyez sur le bouton Partager (⎘) puis 'Sur l'écran d'accueil'.");
+        return;
+      }
+
+      // 3. Autre navigateur / Desktop
+      showToast("L'installation directe n'est pas disponible sur ce navigateur.");
     };
 
     elements.acceptInstall.addEventListener("click", triggerInstall);
