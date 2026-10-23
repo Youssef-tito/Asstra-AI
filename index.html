@@ -384,6 +384,16 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   animation: appear .25s ease;
 }
 
+/* MODIFICATION: User 3al Yamin (Right) & ASSTRA 3al Yassar (Left) */
+.message.user {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.message.assistant {
+  align-self: flex-start;
+}
+
 @keyframes appear {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
@@ -424,6 +434,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .message.user .bubble {
   background: #f5f2ff;
   border-color: #ebe5ff;
+  border-radius: 17px 4px 17px 17px;
 }
 
 .bubble > :first-child { margin-top: 0; }
@@ -943,7 +954,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 (() => {
   "use strict";
 
-  // IMPORTANT : ce chemin correspond à un fichier backend api/ai.js sur Vercel.
   const API_URL = "/api/ai";
 
   const STORAGE_KEY = "asstra_ai_conversations_v2";
