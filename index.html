@@ -391,7 +391,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   animation: appear .25s ease;
 }
 
-/* User 3al Yamin & ASSTRA 3al Yassar */
 .message.user {
   flex-direction: row-reverse;
   align-self: flex-end;
@@ -739,18 +738,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .install-modal p {
   margin: 0 0 20px;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.install-instructions {
-  background: #f8f6ff;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 20px;
-  text-align: left;
-  font-size: 11px;
-  color: #555168;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -1033,17 +1021,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
-<!-- Modal Install Popup Dialog -->
+<!-- Modal Install Popup Dialog Direct -->
 <div class="install-modal-backdrop" id="installModalBackdrop">
   <div class="install-modal" role="dialog" aria-modal="true">
     <div class="install-modal-icon">✦</div>
     <h3>Installer ASSTRA AI</h3>
     <p>Installez l'application sur votre écran d'accueil pour un accès ultra-rapide et indépendant.</p>
-    
-    <div class="install-instructions" id="installInstructions">
-      <b>Sur Android / Samsung Internet :</b><br>
-      Appuyez sur <b>⋮</b> en bas à droite ➔ <b>« Ajouter la page à »</b> ➔ <b>« Écran d'accueil »</b>.
-    </div>
 
     <div class="install-modal-actions">
       <button class="install-modal-btn btn-refuse" id="refuseInstallBtn" type="button">Refuser</button>
@@ -1085,8 +1068,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     installBackdrop: $("installModalBackdrop"),
     acceptInstall: $("acceptInstallBtn"),
     refuseInstall: $("refuseInstallBtn"),
-    headerInstallBtn: $("headerInstallBtn"),
-    installInstructions: $("installInstructions")
+    headerInstallBtn: $("headerInstallBtn")
   };
 
   let conversations = loadConversations();
@@ -1558,12 +1540,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       });
     }
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-    if (isIOS) {
-      elements.installInstructions.innerHTML = "<b>Sur iPhone / iPad :</b><br>Appuyez sur le bouton <b>Partager</b> (carré avec flèche) ➔ <b>« Sur l'écran d'accueil »</b> ➔ <b>« Ajouter »</b>.";
-    }
-
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       installPrompt = event;
@@ -1587,13 +1563,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     });
 
     elements.acceptInstall.addEventListener("click", async () => {
+      elements.installBackdrop.classList.remove("visible");
+
       if (installPrompt) {
-        elements.installBackdrop.classList.remove("visible");
         installPrompt.prompt();
         try { await installPrompt.userChoice; } catch {}
         installPrompt = null;
       } else {
-        showToast("Suivez les instructions affichées à l'écran.");
+        // Fallback direct redirection
+        window.location.href = "googlechrome://navigate?url=" + encodeURIComponent(window.location.href);
       }
     });
 
