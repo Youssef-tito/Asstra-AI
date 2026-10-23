@@ -9,7 +9,7 @@
 <title>ASSTRA AI — Assistant Intelligent</title>
 
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -255,7 +255,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   box-shadow: 0 0 8px rgba(64,201,148,.5);
 }
 
-.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
 
 .secondary-button {
   min-height: 38px;
@@ -269,6 +269,13 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
 .secondary-button:hover { background: var(--purple-light); border-color: #d9ceff; }
+
+.btn-header-install {
+  background: linear-gradient(110deg, #8e75ff, #6545ec) !important;
+  color: white !important;
+  border: 0 !important;
+  box-shadow: 0 4px 12px rgba(112,84,247,.22);
+}
 
 .content {
   width: 100%;
@@ -676,7 +683,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   font-size: 9px;
 }
 
-/* Custom Install Popup Dialog Modal Styles */
+/* Modal Install PWA */
 .install-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -697,7 +704,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
 .install-modal {
-  width: min(400px, 100%);
+  width: min(420px, 100%);
   background: #fff;
   border-radius: 24px;
   padding: 28px 24px;
@@ -730,9 +737,20 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
 .install-modal p {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.install-instructions {
+  background: #f8f6ff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+  text-align: left;
+  font-size: 11px;
+  color: #555168;
   line-height: 1.6;
 }
 
@@ -898,6 +916,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       </div>
 
       <div class="topbar-actions">
+        <button class="secondary-button btn-header-install" id="headerInstallBtn" type="button">
+          📲 Installer
+        </button>
         <button class="secondary-button" id="exportButton" type="button" title="Exporter la discussion">
           ⇩ Exporter
         </button>
@@ -1012,12 +1033,18 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
-<!-- Custom Install Popup Modal -->
+<!-- Modal Install Popup Dialog -->
 <div class="install-modal-backdrop" id="installModalBackdrop">
-  <div class="install-modal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
+  <div class="install-modal" role="dialog" aria-modal="true">
     <div class="install-modal-icon">✦</div>
-    <h3 id="installModalTitle">Installer ASSTRA AI</h3>
-    <p>Installez l'application sur votre appareil pour un accès plus rapide, fluide et en plein écran.</p>
+    <h3>Installer ASSTRA AI</h3>
+    <p>Installez l'application sur votre écran d'accueil pour un accès ultra-rapide et indépendant.</p>
+    
+    <div class="install-instructions" id="installInstructions">
+      <b>Sur Android / Samsung Internet :</b><br>
+      Appuyez sur <b>⋮</b> en bas à droite ➔ <b>« Ajouter la page à »</b> ➔ <b>« Écran d'accueil »</b>.
+    </div>
+
     <div class="install-modal-actions">
       <button class="install-modal-btn btn-refuse" id="refuseInstallBtn" type="button">Refuser</button>
       <button class="install-modal-btn btn-install" id="acceptInstallBtn" type="button">Installer</button>
@@ -1057,7 +1084,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     toast: $("toast"),
     installBackdrop: $("installModalBackdrop"),
     acceptInstall: $("acceptInstallBtn"),
-    refuseInstall: $("refuseInstallBtn")
+    refuseInstall: $("refuseInstallBtn"),
+    headerInstallBtn: $("headerInstallBtn"),
+    installInstructions: $("installInstructions")
   };
 
   let conversations = loadConversations();
@@ -1529,48 +1558,42 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       });
     }
 
-    // Capture the PWA install event
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      elements.installInstructions.innerHTML = "<b>Sur iPhone / iPad :</b><br>Appuyez sur le bouton <b>Partager</b> (carré avec flèche) ➔ <b>« Sur l'écran d'accueil »</b> ➔ <b>« Ajouter »</b>.";
+    }
+
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       installPrompt = event;
       
-      // Check if user already refused in this session
       if (!sessionStorage.getItem("asstra_install_refused")) {
         elements.installBackdrop.classList.add("visible");
       }
     });
 
-    // Refuse button clicked -> close modal and continue in Google Chrome browser
+    elements.headerInstallBtn.addEventListener("click", () => {
+      if (installPrompt) {
+        installPrompt.prompt();
+      } else {
+        elements.installBackdrop.classList.add("visible");
+      }
+    });
+
     elements.refuseInstall.addEventListener("click", () => {
       elements.installBackdrop.classList.remove("visible");
       sessionStorage.setItem("asstra_install_refused", "true");
     });
 
-    // Accept / Installer button clicked -> trigger native browser install prompt
     elements.acceptInstall.addEventListener("click", async () => {
-      elements.installBackdrop.classList.remove("visible");
-
       if (installPrompt) {
+        elements.installBackdrop.classList.remove("visible");
         installPrompt.prompt();
-        try {
-          await installPrompt.userChoice;
-        } catch {}
+        try { await installPrompt.userChoice; } catch {}
         installPrompt = null;
       } else {
-        // Fallback for iOS or unsupported direct prompt browsers
-        const isIOS =
-          /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-        if (isIOS) {
-          showToast(
-            "Sur iPhone : appuyez sur Partager, puis « Sur l'écran d'accueil » et « Ajouter »."
-          );
-        } else {
-          showToast(
-            "Ouvrez le menu du navigateur (3 points) et choisissez « Installer l'application »."
-          );
-        }
+        showToast("Suivez les instructions affichées à l'écran.");
       }
     });
 
@@ -1579,16 +1602,11 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       showToast("ASSTRA AI a été installé avec succès !");
     });
 
-    // If iOS and not installed standalone, show prompt modal too
-    const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-    if (isIOS && !window.matchMedia("(display-mode: standalone)").matches) {
+    if (!window.matchMedia("(display-mode: standalone)").matches) {
       if (!sessionStorage.getItem("asstra_install_refused")) {
         setTimeout(() => {
           elements.installBackdrop.classList.add("visible");
-        }, 1000);
+        }, 1200);
       }
     }
   }
