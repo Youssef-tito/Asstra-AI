@@ -107,7 +107,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
 .primary-button, .secondary-button, .tool-button,
-.send-button, .install-button {
+.send-button {
   border: 0;
   cursor: pointer;
   transition: .2s ease;
@@ -384,7 +384,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   animation: appear .25s ease;
 }
 
-/* MODIFICATION: User 3al Yamin (Right) & ASSTRA 3al Yassar (Left) */
+/* User 3al Yamin & ASSTRA 3al Yassar */
 .message.user {
   flex-direction: row-reverse;
   align-self: flex-end;
@@ -676,22 +676,101 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   font-size: 9px;
 }
 
-.install-button {
+/* Custom Install Popup Dialog Modal Styles */
+.install-modal-backdrop {
   position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 20;
-  display: none;
-  padding: 12px 17px;
-  border-radius: 14px;
-  color: white;
-  background: linear-gradient(110deg, #8d73ff, #6244ee);
-  box-shadow: 0 8px 24px rgba(112,84,247,.3);
-  font-size: 12px;
-  font-weight: 750;
+  inset: 0;
+  background: rgba(37, 34, 56, 0.45);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
-.install-button.visible { display: block; }
+.install-modal-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.install-modal {
+  width: min(400px, 100%);
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 50px rgba(61, 39, 130, 0.2);
+  text-align: center;
+  animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalUp {
+  from { transform: translateY(20px) scale(0.96); }
+  to { transform: translateY(0) scale(1); }
+}
+
+.install-modal-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #a28cff, #6745ed);
+  color: white;
+  box-shadow: 0 8px 24px rgba(112, 84, 247, 0.35);
+}
+
+.install-modal h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.install-modal p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.install-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.install-modal-btn {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 13px;
+  font-weight: 750;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-refuse {
+  background: #f2efec;
+  color: #625c76;
+}
+
+.btn-refuse:hover {
+  background: #e8e3dc;
+}
+
+.btn-install {
+  background: linear-gradient(110deg, #8e75ff, #6545ec);
+  color: white;
+  box-shadow: 0 4px 15px rgba(112, 84, 247, 0.3);
+}
+
+.btn-install:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(112, 84, 247, 0.4);
+}
 
 .toast {
   position: fixed;
@@ -760,20 +839,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   .message { gap: 8px; }
   .avatar { width: 30px; height: 30px; border-radius: 10px; }
   .message-actions { margin-left: 38px; }
-}
-
-@media (max-width: 380px) {
-  .topbar-actions #exportButton { display: none; }
-  .suggestions { grid-template-columns: 1fr; }
-  .suggestion { min-height: 100px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    transition-duration: .01ms !important;
-  }
 }
 </style>
 </head>
@@ -947,7 +1012,19 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
-<button class="install-button" id="installButton" type="button">✦ Installer ASSTRA AI</button>
+<!-- Custom Install Popup Modal -->
+<div class="install-modal-backdrop" id="installModalBackdrop">
+  <div class="install-modal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
+    <div class="install-modal-icon">✦</div>
+    <h3 id="installModalTitle">Installer ASSTRA AI</h3>
+    <p>Installez l'application sur votre appareil pour un accès plus rapide, fluide et en plein écran.</p>
+    <div class="install-modal-actions">
+      <button class="install-modal-btn btn-refuse" id="refuseInstallBtn" type="button">Refuser</button>
+      <button class="install-modal-btn btn-install" id="acceptInstallBtn" type="button">Installer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -977,8 +1054,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     attachmentInfo: $("attachmentInfo"),
     removeAttachment: $("removeAttachment"),
     voiceButton: $("voiceButton"),
-    installButton: $("installButton"),
-    toast: $("toast")
+    toast: $("toast"),
+    installBackdrop: $("installModalBackdrop"),
+    acceptInstall: $("acceptInstallBtn"),
+    refuseInstall: $("refuseInstallBtn")
   };
 
   let conversations = loadConversations();
@@ -1441,65 +1520,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     showToast("Discussion exportée.");
   }
 
-  function setupVoiceInput() {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    const button = elements.voiceButton;
-    const label = button.querySelector("span");
-
-    if (!SpeechRecognition) {
-      button.addEventListener("click", () => {
-        showToast("La dictée vocale n'est pas disponible dans ce navigateur.");
-      });
-      return;
-    }
-
-    button.addEventListener("click", () => {
-      if (recognition) {
-        try { recognition.stop(); } catch {}
-        return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.lang = "fr-FR";
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        button.classList.add("listening");
-        label.textContent = "Écoute...";
-        button.title = "Arrêter la dictée";
-      };
-
-      recognition.onresult = event => {
-        const result = event.results?.[0]?.[0]?.transcript || "";
-        elements.prompt.value =
-          (elements.prompt.value.trim() + " " + result).trim();
-        elements.prompt.dispatchEvent(new Event("input"));
-      };
-
-      recognition.onerror = () => {
-        showToast("La dictée vocale n'a pas fonctionné.");
-      };
-
-      recognition.onend = () => {
-        recognition = null;
-        button.classList.remove("listening");
-        label.textContent = "Voix";
-        button.title = "Dicter un message";
-      };
-
-      try {
-        recognition.start();
-      } catch {
-        recognition = null;
-        showToast("Impossible de démarrer la dictée vocale.");
-      }
-    });
-  }
-
-  function setupInstall() {
+  function setupInstallPrompt() {
     if ("serviceWorker" in navigator && location.protocol === "https:") {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(error => {
@@ -1508,48 +1529,67 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       });
     }
 
+    // Capture the PWA install event
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       installPrompt = event;
-      elements.installButton.classList.add("visible");
+      
+      // Check if user already refused in this session
+      if (!sessionStorage.getItem("asstra_install_refused")) {
+        elements.installBackdrop.classList.add("visible");
+      }
     });
 
-    elements.installButton.addEventListener("click", async () => {
+    // Refuse button clicked -> close modal and continue in Google Chrome browser
+    elements.refuseInstall.addEventListener("click", () => {
+      elements.installBackdrop.classList.remove("visible");
+      sessionStorage.setItem("asstra_install_refused", "true");
+    });
+
+    // Accept / Installer button clicked -> trigger native browser install prompt
+    elements.acceptInstall.addEventListener("click", async () => {
+      elements.installBackdrop.classList.remove("visible");
+
       if (installPrompt) {
         installPrompt.prompt();
-
-        try { await installPrompt.userChoice; } catch {}
-
+        try {
+          await installPrompt.userChoice;
+        } catch {}
         installPrompt = null;
-        elements.installButton.classList.remove("visible");
-        return;
-      }
-
-      const isIOS =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-      if (isIOS) {
-        showToast(
-          "Sur iPhone : ouvrez ce site dans Safari, appuyez sur Partager, " +
-          "puis « Sur l'écran d'accueil » et « Ajouter »."
-        );
       } else {
-        showToast("Ouvrez le menu du navigateur et cherchez « Installer l'application ».");
+        // Fallback for iOS or unsupported direct prompt browsers
+        const isIOS =
+          /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+          showToast(
+            "Sur iPhone : appuyez sur Partager, puis « Sur l'écran d'accueil » et « Ajouter »."
+          );
+        } else {
+          showToast(
+            "Ouvrez le menu du navigateur (3 points) et choisissez « Installer l'application »."
+          );
+        }
       }
     });
 
     window.addEventListener("appinstalled", () => {
-      elements.installButton.classList.remove("visible");
-      showToast("ASSTRA AI a été installé.");
+      elements.installBackdrop.classList.remove("visible");
+      showToast("ASSTRA AI a été installé avec succès !");
     });
 
+    // If iOS and not installed standalone, show prompt modal too
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
     if (isIOS && !window.matchMedia("(display-mode: standalone)").matches) {
-      elements.installButton.classList.add("visible");
+      if (!sessionStorage.getItem("asstra_install_refused")) {
+        setTimeout(() => {
+          elements.installBackdrop.classList.add("visible");
+        }, 1000);
+      }
     }
   }
 
@@ -1588,8 +1628,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     });
   });
 
-  setupVoiceInput();
-  setupInstall();
+  setupInstallPrompt();
 
   if (!activeId || !getActiveChat()) {
     const first = {
