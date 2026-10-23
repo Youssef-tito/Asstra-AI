@@ -1,34 +1,22 @@
 {
-"id": "/",
-"name": "ASSTRA AI - Assistant Intelligent",
-"short_name": "ASSTRA AI",
-"description": "Votre assistant intelligent personnel.",
-"lang": "fr",
-"start_url": "/",
-"scope": "/",
-"display": "standalone",
-"orientation": "any",
-"background_color": "#ffffff",
-"theme_color": "#7054f7",
-"prefer_related_applications": false,
-"icons": [
-{
-"src": "/icons/icon-192.png",
-"sizes": "192x192",
-"type": "image/png",
-"purpose": "any"
-},
-{
-"src": "/icons/icon-512.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "any"
-},
-{
-"src": "/icons/icon-maskable-512.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "maskable"
-}
-]
+  "id": "/",
+  "name": "ASSTRA AI - Assistant Intelligent",
+  "short_name": "ASSTRA AI",
+  "description": "Votre assistant intelligent personnel.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#7054f7",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
