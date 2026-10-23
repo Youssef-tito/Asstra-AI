@@ -682,7 +682,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   font-size: 9px;
 }
 
-/* Modal Install PWA */
+/* Modal Install PWA & Auth Modal */
 .install-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1035,6 +1035,25 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </div>
 </div>
 
+<!-- Modal d'authentification (Connexion / Inscription) -->
+<div class="install-modal-backdrop" id="authModalBackdrop" style="display: none;">
+  <div class="install-modal" role="dialog" aria-modal="true">
+    <div class="install-modal-icon">✦</div>
+    <h3 id="authTitle">Connexion à ASSTRA AI</h3>
+    <p id="authDesc">Entrez vos identifiants pour accéder à votre espace personnel.</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+      <input type="email" id="authEmail" placeholder="Votre email" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; outline: none;">
+      <input type="password" id="authPassword" placeholder="Votre mot de passe" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; outline: none;">
+    </div>
+
+    <div class="install-modal-actions">
+      <button class="install-modal-btn btn-refuse" id="authSwitchBtn" type="button">Créer un compte</button>
+      <button class="install-modal-btn btn-install" id="authSubmitBtn" type="button">Se connecter</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1068,7 +1087,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     installBackdrop: $("installModalBackdrop"),
     acceptInstall: $("acceptInstallBtn"),
     refuseInstall: $("refuseInstallBtn"),
-    headerInstallBtn: $("headerInstallBtn")
+    headerInstallBtn: $("headerInstallBtn"),
+    authModal: $("authModalBackdrop"),
+    authEmail: $("authEmail"),
+    authPassword: $("authPassword"),
+    authSubmit: $("authSubmitBtn"),
+    authSwitch: $("authSwitchBtn"),
+    authTitle: $("authTitle"),
+    authDesc: $("authDesc")
   };
 
   let conversations = loadConversations();
@@ -1077,7 +1103,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   let isSending = false;
   let installPrompt = null;
   let toastTimer = null;
-  let recognition = null;
+  let isSignUpMode = false;
 
   function makeId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -1562,7 +1588,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
         } catch (e) {}
         installPrompt = null;
       } else {
-        // Redirection Chrome pour déclencher l'installation directe
         window.location.href = "intent://" + window.location.host + window.location.pathname + "#Intent;scheme=https;package=com.android.chrome;end";
       }
     };
@@ -1588,6 +1613,34 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       }
     }
   }
+
+  // Auth Modal Management
+  elements.authSwitch.addEventListener("click", () => {
+    isSignUpMode = !isSignUpMode;
+    if (isSignUpMode) {
+      elements.authTitle.textContent = "Créer un compte ASSTRA AI";
+      elements.authDesc.textContent = "Inscrivez-vous pour obtenir votre espace et vos quotas.";
+      elements.authSubmit.textContent = "S'inscrire";
+      elements.authSwitch.textContent = "Se connecter";
+    } else {
+      elements.authTitle.textContent = "Connexion à ASSTRA AI";
+      elements.authDesc.textContent = "Entrez vos identifiants pour accéder à votre espace personnel.";
+      elements.authSubmit.textContent = "Se connecter";
+      elements.authSwitch.textContent = "Créer un compte";
+    }
+  });
+
+  elements.authSubmit.addEventListener("click", () => {
+    const email = elements.authEmail.value.trim();
+    const password = elements.authPassword.value.trim();
+    if (!email || !password) {
+      showToast("Veuillez remplir tous les champs.");
+      return;
+    }
+    // قريباً سنربطه بـ Supabase لبدء التحقق الفعلي
+    showToast(isSignUpMode ? "Compte créé (Simulation)" : "Connecté avec succès !");
+    elements.authModal.style.display = "none";
+  });
 
   $("newChatButton").addEventListener("click", createConversation);
   $("topNewChatButton").addEventListener("click", createConversation);
