@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1432,7 +1431,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     showToast("Discussion exportée.");
   }
 
-  // Dictée vocale : le texte du bouton change sans supprimer l'icône SVG.
   function setupVoiceInput() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1545,7 +1543,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     }
   }
 
-  // Événements de l'interface
   $("newChatButton").addEventListener("click", createConversation);
   $("topNewChatButton").addEventListener("click", createConversation);
   $("exportButton").addEventListener("click", exportConversation);
@@ -1602,4 +1599,3 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 </script>
 </body>
 </html>
-```
