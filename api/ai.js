@@ -17,13 +17,13 @@ export default async function handler(req, res) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie." });
+      return res.status(500).json({ error: "Erreur: OPENROUTER_API_KEY n'est pas définie sur Vercel." });
     }
 
     const body = req.body || {};
     const { action, email, password, messages, title } = body;
 
-    // --- Action: AUTHENTIFICATION (LOGIN / SIGNUP) ---
+    // --- 1. HANDLING AUTHENTICATION (SIGNUP / LOGIN) ---
     if (action === "auth") {
       if (!email || !password) {
         return res.status(400).json({ error: "Email et mot de passe requis." });
@@ -55,11 +55,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // --- Action: CHAT AI WITH QUOTA CHECK ---
+    // --- 2. HANDLING AI CHAT & QUOTA ---
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Aucun message reçu." });
     }
 
+    // Checking & Updating User Quota (If User is logged in)
     if (email) {
       let { data: user } = await supabase
         .from('users')
@@ -72,6 +73,7 @@ export default async function handler(req, res) {
         const lastReset = new Date(user.last_reset_time || now);
         const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
 
+        // Reset Quota after 24 Hours
         if (hoursPassed >= 24) {
           await supabase
             .from('users')
@@ -80,12 +82,14 @@ export default async function handler(req, res) {
           user.questions_count = 0;
         }
 
+        // Limit Check (30 Questions / 24h)
         if (user.questions_count >= 30) {
           return res.status(429).json({ 
-            error: "⚠️ 30 questions épuisées pour aujourd'hui ! Revenez après 24h." 
+            error: "⚠️ Limite atteinte (30 questions / 24h). Revenez plus tard !" 
           });
         }
 
+        // Increment count
         await supabase
           .from('users')
           .update({ questions_count: (user.questions_count || 0) + 1 })
@@ -117,11 +121,18 @@ export default async function handler(req, res) {
     });
 
     const data = await apiResponse.json();
+
     if (!apiResponse.ok) {
-      return res.status(502).json({ error: `OpenRouter Error: ${data.error?.message || "Error"}` });
+      return res.status(502).json({ 
+        error: `OpenRouter Error (${apiResponse.status}): ${data.error?.message || JSON.stringify(data)}` 
+      });
     }
 
     const reply = data.choices?.[0]?.message?.content;
+    if (!reply) {
+      return res.status(502).json({ error: "Erreur: Le modèle n'a renvoyé aucune réponse." });
+    }
+
     return res.status(200).json({
       choices: [{ message: { role: "assistant", content: reply } }],
       title: title || "Discussion"
