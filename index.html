@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -15,7 +14,6 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 
   <style>
@@ -515,7 +513,6 @@
       }
     }
   </style>
-
 </head>
 
 <body>
@@ -529,18 +526,15 @@
       </div>
     </div>
 
-```
-<button class="new-chat" id="newChat">＋ Nouvelle discussion</button>
+    <button class="new-chat" id="newChat">＋ Nouvelle discussion</button>
 
-<div class="history-title">HISTORIQUE</div>
-<div class="history" id="history"></div>
+    <div class="history-title">HISTORIQUE</div>
+    <div class="history" id="history"></div>
 
-<div class="sidebar-bottom">
-  ASSTRA AI<br>
-  Votre assistant intelligent.
-</div>
-```
-
+    <div class="sidebar-bottom">
+      ASSTRA AI<br>
+      Votre assistant intelligent.
+    </div>
   </aside>
 
   <main class="main">
@@ -550,49 +544,46 @@
         <div class="online">● Prêt à vous aider</div>
       </div>
 
-```
-  <div class="mobile-brand">
-    <div class="logo">✦</div>
-    <span>ASSTRA AI</span>
-  </div>
+      <div class="mobile-brand">
+        <div class="logo">✦</div>
+        <span>ASSTRA AI</span>
+      </div>
 
-  <button class="tool-button" id="topNewChat">＋ Nouveau</button>
-</header>
+      <button class="tool-button" id="topNewChat">＋ Nouveau</button>
+    </header>
 
-<section class="content">
-  <div class="welcome" id="welcome">
-    <div class="welcome-logo">✦</div>
-    <h1>Bonjour, bienvenue sur <span class="gradient-text">ASSTRA AI</span></h1>
-    <p>Posez vos questions, partagez vos idées et découvrez de nouvelles possibilités avec votre assistant intelligent.</p>
+    <section class="content">
+      <div class="welcome" id="welcome">
+        <div class="welcome-logo">✦</div>
+        <h1>Bonjour, bienvenue sur <span class="gradient-text">ASSTRA AI</span></h1>
+        <p>Posez vos questions, partagez vos idées et découvrez de nouvelles possibilités avec votre assistant intelligent.</p>
 
-    <div class="suggestions">
-      <button class="suggestion" data-prompt="Explique-moi un sujet difficile simplement.">
-        <strong>✧ Apprendre</strong>
-        <span>Explique-moi un sujet difficile simplement.</span>
-      </button>
+        <div class="suggestions">
+          <button class="suggestion" data-prompt="Explique-moi un sujet difficile simplement.">
+            <strong>✧ Apprendre</strong>
+            <span>Explique-moi un sujet difficile simplement.</span>
+          </button>
 
-      <button class="suggestion" data-prompt="Aide-moi à trouver des idées créatives pour un projet.">
-        <strong>✧ Créer</strong>
-        <span>Trouve des idées originales pour mon projet.</span>
-      </button>
+          <button class="suggestion" data-prompt="Aide-moi à trouver des idées créatives pour un projet.">
+            <strong>✧ Créer</strong>
+            <span>Trouve des idées originales pour mon projet.</span>
+          </button>
 
-      <button class="suggestion" data-prompt="Aide-moi à écrire un texte clair et bien organisé.">
-        <strong>✧ Écrire</strong>
-        <span>Prépare un texte clair et bien organisé.</span>
-      </button>
+          <button class="suggestion" data-prompt="Aide-moi à écrire un texte clair et bien organisé.">
+            <strong>✧ Écrire</strong>
+            <span>Prépare un texte clair et bien organisé.</span>
+          </button>
 
-      <button class="suggestion" data-prompt="Aide-moi à résoudre un problème étape par étape.">
-        <strong>✧ Résoudre</strong>
-        <span>Avançons étape par étape.</span>
-      </button>
-    </div>
-  </div>
+          <button class="suggestion" data-prompt="Aide-moi à résoudre un problème étape par étape.">
+            <strong>✧ Résoudre</strong>
+            <span>Avançons étape par étape.</span>
+          </button>
+        </div>
+      </div>
 
-  <div class="messages" id="messages"></div>
-  <div class="typing" id="typing" hidden>ASSTRA AI prépare une réponse…</div>
-</section>
-```
-
+      <div class="messages" id="messages"></div>
+      <div class="typing" id="typing" hidden>ASSTRA AI prépare une réponse…</div>
+    </section>
   </main>
 </div>
 
@@ -600,22 +591,19 @@
   <div class="composer">
     <div class="attachment" id="attachment"></div>
 
-```
-<textarea
-  id="prompt"
-  rows="1"
-  placeholder="Écrivez votre message à ASSTRA AI…"
-  aria-label="Votre message"
-></textarea>
+    <textarea
+      id="prompt"
+      rows="1"
+      placeholder="Écrivez votre message à ASSTRA AI…"
+      aria-label="Votre message"
+    ></textarea>
 
-<div class="composer-tools">
-  <button class="tool-button" id="imageButton" type="button">＋ Image</button>
-  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-  <span style="font-size:11px;color:#9893a7">Entrée pour envoyer</span>
-  <button class="send-button" id="sendButton" type="button" aria-label="Envoyer">↑</button>
-</div>
-```
-
+    <div class="composer-tools">
+      <button class="tool-button" id="imageButton" type="button">＋ Image</button>
+      <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+      <span style="font-size:11px;color:#9893a7">Entrée pour envoyer</span>
+      <button class="send-button" id="sendButton" type="button" aria-label="Envoyer">↑</button>
+    </div>
   </div>
   <div class="disclaimer">ASSTRA AI peut parfois faire des erreurs. Vérifiez les informations importantes.</div>
 </div>
@@ -626,7 +614,7 @@
 (() => {
   "use strict";
 
-  const API_URL = "/api/api";
+  const API_URL = "/api/ai"; // Fixed here!
   const STORAGE_KEY = "asstra_ai_chats_v1";
 
   const promptInput = document.getElementById("prompt");
@@ -660,7 +648,6 @@
 
   function saveChats() {
     try {
-      // Avoid saving base64 images in the permanent chat history.
       const safeChats = chats.map(chat => ({
         ...chat,
         messages: chat.messages.map(message => ({
