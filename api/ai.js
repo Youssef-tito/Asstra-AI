@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // مفتاح Service Role للتحكم الآمن من السيرفر
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
@@ -22,13 +22,13 @@ export default async function handler(req, res) {
 
     const body = req.body || {};
     const messages = body.messages || [];
-    const userEmail = body.email; // سنقوم بإرسال الإيميل من الفرونت إند لاحقاً
+    const userEmail = body.email;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Aucun message reçu." });
     }
 
-    // التحقق من المستخدم والـ Quota إذا كان مسجلاً
+    // التحقق من الـ Quota فقط إذا قام المستخدم بإدخال إيميله
     if (userEmail) {
       let { data: user, error: fetchError } = await supabase
         .from('users')
@@ -36,34 +36,34 @@ export default async function handler(req, res) {
         .eq('email', userEmail)
         .single();
 
-      if (user) {
-        const now = new Date();
-        const lastReset = new Date(user.last_reset_time);
-        const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
+      // إذا المستخدم غير موجود في الجدول، نقوم بإنشائه تلقائياً
+      if (!user) {
+        await supabase.from('users').insert([{ email: userEmail, password: 'user', questions_count: 0 }]);
+        user = { questions_count: 0, last_reset_time: new Date().toISOString() };
+      }
 
-        // إذا مرّت 24 ساعة، نقوم بتصفير العداد
-        if (hoursPassed >= 24) {
-          await supabase
-            .from('users')
-            .update({ questions_count: 0, last_reset_time: now.toISOString() })
-            .eq('email', userEmail);
-          
-          user.questions_count = 0;
-        }
+      const now = new Date();
+      const lastReset = new Date(user.last_reset_time);
+      const hoursPassed = (now - lastReset) / (1000 * 60 * 60);
 
-        // التحقق من تجاوز الحد الأقصى (30 سؤال)
-        if (user.questions_count >= 30) {
-          return res.status(429).json({ 
-            error: "⚠️ لقد استنفدت الحد الأقصى (30 سؤال لكل 24 ساعة). يرجى العودة لاحقاً أو غداً." 
-          });
-        }
-
-        // زيادة العداد بـ 1
+      if (hoursPassed >= 24) {
         await supabase
           .from('users')
-          .update({ questions_count: user.questions_count + 1 })
+          .update({ questions_count: 0, last_reset_time: now.toISOString() })
           .eq('email', userEmail);
+        user.questions_count = 0;
       }
+
+      if (user.questions_count >= 30) {
+        return res.status(429).json({ 
+          error: "⚠️ لقد استنفدت الحد الأقصى (30 سؤال لكل 24 ساعة). يرجى العودة لاحقاً أو غداً." 
+        });
+      }
+
+      await supabase
+        .from('users')
+        .update({ questions_count: (user.questions_count || 0) + 1 })
+        .eq('email', userEmail);
     }
 
     const formattedMessages = [
