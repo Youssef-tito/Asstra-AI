@@ -1,4 +1,3 @@
-```javascript
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   const host = req.headers.host;
@@ -49,8 +48,7 @@ export default async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(500).json({
-        error:
-          "OPENROUTER_API_KEY n'est pas configurée dans Vercel."
+        error: "OPENROUTER_API_KEY n'est pas configurée dans Vercel."
       });
     }
 
@@ -69,8 +67,7 @@ export default async function handler(req, res) {
 
     if (messages.length > 100) {
       return res.status(400).json({
-        error:
-          "Cette discussion est trop longue. Commencez une nouvelle discussion."
+        error: "Cette discussion est trop longue. Commencez une nouvelle discussion."
       });
     }
 
@@ -89,15 +86,12 @@ PERSONNALITÉ :
 - Adapte la longueur de ta réponse à la question.
 - Utilise des listes et des titres lorsque cela améliore la lisibilité.
 - Pour le code, fournis des exemples complets lorsque c'est nécessaire.
-- Si tu n'es pas certain d'une information, précise-le.
 - Ne prétends jamais avoir effectué une action que tu n'as pas effectuée.
 - Respecte la vie privée de l'utilisateur.
 - Ne révèle jamais les clés API, mots de passe ou secrets du serveur.
-- Ne prétends pas disposer d'une fonctionnalité qui n'est pas disponible.
 `;
 
-    const recentMessages = messages.slice(-30);
-
+    const recentMessages = messages.slice(-20);
     const formattedMessages = [
       {
         role: "system",
@@ -110,69 +104,34 @@ PERSONNALITÉ :
 
     for (let i = 0; i < recentMessages.length; i++) {
       const message = recentMessages[i] || {};
-
-      const role =
-        message.role === "assistant" ? "assistant" : "user";
-
-      const rawText =
-        typeof message.content === "string"
-          ? message.content
-          : typeof message.text === "string"
-            ? message.text
-            : "";
-
-      const text = rawText.slice(0, 12000);
+      const role = message.role === "assistant" ? "assistant" : "user";
+      const rawText = typeof message.content === "string" ? message.content : "";
+      const text = rawText.slice(0, 10000);
 
       if (role === "user") {
         lastUserText = text;
       }
 
       const messageImage =
-        message.image ||
-        (i === recentMessages.length - 1 ? body.image : null);
+        message.image || (i === recentMessages.length - 1 ? body.image : null);
 
       const validImage =
         typeof messageImage === "string" &&
-        /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(
-          messageImage
-        );
+        /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(messageImage);
 
       if (validImage) {
-        if (messageImage.length > 8_000_000) {
-          return res.status(413).json({
-            error:
-              "L'image est trop volumineuse. Choisissez une image plus légère."
-          });
-        }
-
         if (i === recentMessages.length - 1 && role === "user") {
           hasLastUserImage = true;
         }
-
         formattedMessages.push({
           role,
           content: [
-            {
-              type: "text",
-              text:
-                text ||
-                (role === "user"
-                  ? "Analyse cette image."
-                  : "")
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: messageImage
-              }
-            }
+            { type: "text", text: text || "Analyse cette image." },
+            { type: "image_url", image_url: { url: messageImage } }
           ]
         });
       } else if (text.trim()) {
-        formattedMessages.push({
-          role,
-          content: text
-        });
+        formattedMessages.push({ role, content: text });
       }
     }
 
@@ -183,13 +142,9 @@ PERSONNALITÉ :
     }
 
     const controller = new AbortController();
-
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 55000);
+    const timeout = setTimeout(() => controller.abort(), 55000);
 
     let apiResponse;
-
     try {
       apiResponse = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -202,10 +157,10 @@ PERSONNALITÉ :
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "openrouter/auto",
+            model: "google/gemini-2.5-flash",
             messages: formattedMessages,
             temperature: 0.4,
-            max_tokens: 1800
+            max_tokens: 1500
           }),
           signal: controller.signal
         }
@@ -214,58 +169,28 @@ PERSONNALITÉ :
       clearTimeout(timeout);
     }
 
+    const responseText = await apiResponse.text();
     let data;
-
     try {
-      data = await apiResponse.json();
+      data = JSON.parse(responseText);
     } catch {
-      throw new Error("Réponse invalide du service IA.");
+      console.error("OpenRouter Non-JSON Response:", responseText);
+      return res.status(502).json({
+        error: "Réponse invalide du service IA (non-JSON)."
+      });
     }
 
     if (!apiResponse.ok) {
-      console.error(
-        "OpenRouter error:",
-        apiResponse.status
-      );
-
-      if (apiResponse.status === 429) {
-        return res.status(429).json({
-          error:
-            "Le service IA est très demandé. Réessayez dans quelques instants."
-        });
-      }
-
-      if (
-        apiResponse.status === 401 ||
-        apiResponse.status === 403
-      ) {
-        return res.status(502).json({
-          error:
-            "Le service IA a refusé la requête. Vérifiez la clé API et les crédits du compte OpenRouter."
-        });
-      }
-
+      console.error("OpenRouter error status:", apiResponse.status, data);
       return res.status(502).json({
-        error:
-          "Impossible de contacter le service IA. Réessayez plus tard."
+        error: data?.error?.message || "Erreur de communication avec le service IA."
       });
     }
 
     const content = data?.choices?.[0]?.message?.content;
-
-    const aiReply =
-      typeof content === "string"
-        ? content
-        : Array.isArray(content)
-          ? content
-              .map(part => part?.text || "")
-              .join("\n")
-              .trim()
-          : "";
-
-    if (!aiReply) {
+    if (!content) {
       return res.status(502).json({
-        error: "Le modèle IA n'a pas fourni de réponse."
+        error: "Le modèle IA n'a pas renvoyé de contenu."
       });
     }
 
@@ -274,29 +199,22 @@ PERSONNALITÉ :
         {
           message: {
             role: "assistant",
-            content: aiReply
+            content: content
           }
         }
       ],
       title
     });
-  } catch (error) {
-    console.error(
-      "ASSTRA AI backend error:",
-      error?.name || "Error"
-    );
 
+  } catch (error) {
+    console.error("ASSTRA AI backend catch error:", error);
     if (error?.name === "AbortError") {
       return res.status(504).json({
-        error:
-          "Le service IA prend trop de temps. Réessayez."
+        error: "Le service IA met trop de temps à répondre."
       });
     }
-
     return res.status(500).json({
-      error:
-        "Une erreur interne est survenue. Réessayez plus tard."
+      error: "Erreur serveur interne."
     });
   }
 }
-```
