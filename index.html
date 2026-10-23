@@ -277,6 +277,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   box-shadow: 0 4px 12px rgba(112,84,247,.22);
 }
 
+.btn-connexion {
+  background: var(--purple-light) !important;
+  color: var(--purple) !important;
+  border-color: #ded1ff !important;
+}
+
 .content {
   width: 100%;
   max-width: 1000px;
@@ -904,6 +910,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       </div>
 
       <div class="topbar-actions">
+        <button class="secondary-button btn-connexion" id="openAuthBtn" type="button">
+          👤 Connexion
+        </button>
         <button class="secondary-button btn-header-install" id="headerInstallBtn" type="button">
           📲 Installer
         </button>
@@ -1040,7 +1049,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   <div class="install-modal" role="dialog" aria-modal="true">
     <div class="install-modal-icon">✦</div>
     <h3 id="authTitle">Connexion à ASSTRA AI</h3>
-    <p id="authDesc">Entrez vos identifiants pour accéder à votre espace personnel.</p>
+    <p id="authDesc">Entrez votre email pour suivre vos quotas (30 questions / 24h).</p>
     
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
       <input type="email" id="authEmail" placeholder="Votre email" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; outline: none;">
@@ -1061,7 +1070,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   "use strict";
 
   const API_URL = "/api/ai";
-
   const STORAGE_KEY = "asstra_ai_conversations_v2";
   const MAX_HISTORY = 35;
   const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -1088,6 +1096,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     acceptInstall: $("acceptInstallBtn"),
     refuseInstall: $("refuseInstallBtn"),
     headerInstallBtn: $("headerInstallBtn"),
+    openAuthBtn: $("openAuthBtn"),
     authModal: $("authModalBackdrop"),
     authEmail: $("authEmail"),
     authPassword: $("authPassword"),
@@ -1104,6 +1113,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   let installPrompt = null;
   let toastTimer = null;
   let isSignUpMode = false;
+  let currentUserEmail = localStorage.getItem("asstra_user_email") || "";
 
   function makeId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -1146,7 +1156,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
       console.warn("Historique local indisponible :", error);
-      showToast("Impossible de sauvegarder tout l'historique sur cet appareil.");
     }
   }
 
@@ -1323,7 +1332,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
           await navigator.clipboard.writeText(message.content);
           showToast("Réponse copiée.");
         } catch {
-          showToast("La copie automatique n'est pas disponible dans ce navigateur.");
+          showToast("Copie impossible.");
         }
       });
 
@@ -1358,7 +1367,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     elements.voiceButton.disabled = busy;
     elements.prompt.disabled = busy;
     elements.typing.hidden = !busy;
-    elements.status.textContent = busy ? "Préparation d'une réponse…" : "Assistant prêt";
+    elements.status.textContent = busy ? "Préparation d'une réponse…" : (currentUserEmail ? "Connecté (" + currentUserEmail + ")" : "Assistant prêt");
   }
 
   function clearSelectedImage() {
@@ -1368,67 +1377,50 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     elements.attachmentPreview.classList.remove("visible");
   }
 
-  function compressImage(file) {
+  async function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
-      reader.onerror = () => reject(new Error("Impossible de lire cette image."));
-
+      reader.onerror = () => reject(new Error("Erreur de lecture image."));
       reader.onload = () => {
         const image = new Image();
-
-        image.onerror = () => reject(new Error("Format d'image invalide."));
-
+        image.onerror = () => reject(new Error("Format invalide."));
         image.onload = () => {
           const maxDimension = 1400;
           const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
-
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.round(image.width * scale));
           canvas.height = Math.max(1, Math.round(image.height * scale));
-
           const context = canvas.getContext("2d");
-          if (!context) {
-            reject(new Error("Impossible de préparer cette image."));
-            return;
-          }
-
           context.fillStyle = "#ffffff";
           context.fillRect(0, 0, canvas.width, canvas.height);
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
           resolve(canvas.toDataURL("image/jpeg", 0.84));
         };
-
         image.src = reader.result;
       };
-
       reader.readAsDataURL(file);
     });
   }
 
   async function selectImage(file) {
     if (!file) return;
-
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       showToast("Choisissez une image PNG, JPEG ou WebP.");
       return;
     }
-
     if (file.size > MAX_IMAGE_BYTES) {
       showToast("L'image doit faire 5 Mo maximum.");
       return;
     }
-
     try {
       selectedImage = await compressImage(file);
       elements.attachmentImage.src = selectedImage;
-      elements.attachmentInfo.textContent = file.name || "Image sélectionnée";
+      elements.attachmentInfo.textContent = file.name || "Image";
       elements.attachmentPreview.classList.add("visible");
-      showToast("Image prête à envoyer.");
+      showToast("Image prête.");
     } catch (error) {
       selectedImage = null;
-      showToast(error.message || "Impossible de préparer l'image.");
+      showToast(error.message);
     }
   }
 
@@ -1484,20 +1476,20 @@ button:disabled { opacity: .55; cursor: not-allowed; }
         body: JSON.stringify({
           messages,
           image: imageToSend || null,
-          title: chat.title
+          title: chat.title,
+          email: currentUserEmail || null // إرسال إيميل المستخدم للتحقق من الـ Quota
         })
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || "Le serveur n'a pas pu traiter votre demande.");
+        throw new Error(data.error || "Erreur serveur.");
       }
 
       const answer = data.choices?.[0]?.message?.content;
-
       if (typeof answer !== "string" || !answer.trim()) {
-        throw new Error("Le modèle IA n'a pas renvoyé de réponse.");
+        throw new Error("Pas de réponse reçue.");
       }
 
       chat.messages.push({ role: "assistant", content: answer });
@@ -1506,125 +1498,35 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       renderHistory();
 
     } catch (error) {
-      console.error("ASSTRA AI request error:", error);
-
-      const message = error.name === "TypeError"
-        ? "Connexion impossible. Vérifiez Internet et le déploiement de votre site."
-        : error.message || "Une erreur est survenue. Réessayez.";
-
+      console.error("ASSTRA AI error:", error);
       chat.messages.push({
         role: "assistant",
-        content: "⚠️ " + message
+        content: "⚠️ " + error.message
       });
-
       saveConversations();
       renderMessages();
-
     } finally {
       setBusy(false);
       elements.prompt.focus();
     }
   }
 
-  function exportConversation() {
-    const chat = getActiveChat();
-
-    if (!chat || !chat.messages.length) {
-      showToast("Cette discussion est vide.");
-      return;
-    }
-
-    const content = [
-      "ASSTRA AI — " + chat.title,
-      "",
-      ...chat.messages.map(message =>
-        (message.role === "user" ? "Vous" : "ASSTRA AI") + ":\n" +
-        message.content + "\n"
-      )
-    ].join("\n");
-
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "ASSTRA-AI-discussion.txt";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast("Discussion exportée.");
-  }
-
-  function setupInstallPrompt() {
-    if ("serviceWorker" in navigator && location.protocol === "https:") {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").catch(error => {
-          console.warn("Service worker :", error);
-        });
-      });
-    }
-
-    window.addEventListener("beforeinstallprompt", event => {
-      event.preventDefault();
-      installPrompt = event;
-      
-      if (!sessionStorage.getItem("asstra_install_refused")) {
-        elements.installBackdrop.classList.add("visible");
-      }
-    });
-
-    const triggerInstall = async () => {
-      elements.installBackdrop.classList.remove("visible");
-
-      if (installPrompt) {
-        installPrompt.prompt();
-        try {
-          const { outcome } = await installPrompt.userChoice;
-          if (outcome === "accepted") {
-            showToast("Installation en cours...");
-          }
-        } catch (e) {}
-        installPrompt = null;
-      } else {
-        window.location.href = "intent://" + window.location.host + window.location.pathname + "#Intent;scheme=https;package=com.android.chrome;end";
-      }
-    };
-
-    elements.acceptInstall.addEventListener("click", triggerInstall);
-    elements.headerInstallBtn.addEventListener("click", triggerInstall);
-
-    elements.refuseInstall.addEventListener("click", () => {
-      elements.installBackdrop.classList.remove("visible");
-      sessionStorage.setItem("asstra_install_refused", "true");
-    });
-
-    window.addEventListener("appinstalled", () => {
-      elements.installBackdrop.classList.remove("visible");
-      showToast("ASSTRA AI a été installé avec succès !");
-    });
-
-    if (!window.matchMedia("(display-mode: standalone)").matches) {
-      if (!sessionStorage.getItem("asstra_install_refused")) {
-        setTimeout(() => {
-          elements.installBackdrop.classList.add("visible");
-        }, 1000);
-      }
-    }
-  }
-
   // Auth Modal Management
+  elements.openAuthBtn.addEventListener("click", () => {
+    elements.authModal.style.display = "grid";
+    elements.authModal.classList.add("visible");
+  });
+
   elements.authSwitch.addEventListener("click", () => {
     isSignUpMode = !isSignUpMode;
     if (isSignUpMode) {
       elements.authTitle.textContent = "Créer un compte ASSTRA AI";
-      elements.authDesc.textContent = "Inscrivez-vous pour obtenir votre espace et vos quotas.";
+      elements.authDesc.textContent = "Inscrivez-vous pour activer vos quotas (30 questions/24h).";
       elements.authSubmit.textContent = "S'inscrire";
       elements.authSwitch.textContent = "Se connecter";
     } else {
       elements.authTitle.textContent = "Connexion à ASSTRA AI";
-      elements.authDesc.textContent = "Entrez vos identifiants pour accéder à votre espace personnel.";
+      elements.authDesc.textContent = "Entrez votre email pour accéder à votre espace.";
       elements.authSubmit.textContent = "Se connecter";
       elements.authSwitch.textContent = "Créer un compte";
     }
@@ -1634,17 +1536,31 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     const email = elements.authEmail.value.trim();
     const password = elements.authPassword.value.trim();
     if (!email || !password) {
-      showToast("Veuillez remplir tous les champs.");
+      showToast("Remplissez tous les champs.");
       return;
     }
-    // قريباً سنربطه بـ Supabase لبدء التحقق الفعلي
-    showToast(isSignUpMode ? "Compte créé (Simulation)" : "Connecté avec succès !");
+    currentUserEmail = email;
+    localStorage.setItem("asstra_user_email", email);
+    showToast("Connecté avec succès : " + email);
+    elements.authModal.classList.remove("visible");
     elements.authModal.style.display = "none";
+    elements.status.textContent = "Connecté (" + email + ")";
   });
 
   $("newChatButton").addEventListener("click", createConversation);
   $("topNewChatButton").addEventListener("click", createConversation);
-  $("exportButton").addEventListener("click", exportConversation);
+  $("exportButton").addEventListener("click", () => {
+    const chat = getActiveChat();
+    if (!chat || !chat.messages.length) return showToast("Discussion vide.");
+    const content = chat.messages.map(m => (m.role === "user" ? "Vous: " : "ASSTRA: ") + m.content).join("\n\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "asstra-chat.txt";
+    a.click();
+  });
+  
   elements.send.addEventListener("click", sendMessage);
 
   elements.prompt.addEventListener("keydown", event => {
@@ -1660,13 +1576,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   });
 
   elements.imageButton.addEventListener("click", () => elements.imageInput.click());
-
   elements.imageInput.addEventListener("change", async () => {
-    const file = elements.imageInput.files?.[0];
-    await selectImage(file);
+    await selectImage(elements.imageInput.files?.[0]);
     elements.imageInput.value = "";
   });
-
   elements.removeAttachment.addEventListener("click", clearSelectedImage);
 
   document.querySelectorAll(".suggestion").forEach(button => {
@@ -1677,18 +1590,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     });
   });
 
-  setupInstallPrompt();
-
-  if (!activeId || !getActiveChat()) {
-    const first = {
-      id: makeId(),
-      title: "Nouvelle discussion",
-      messages: []
-    };
-
-    conversations.unshift(first);
-    activeId = first.id;
-    saveConversations();
+  if (currentUserEmail) {
+    elements.status.textContent = "Connecté (" + currentUserEmail + ")";
   }
 
   renderHistory();
