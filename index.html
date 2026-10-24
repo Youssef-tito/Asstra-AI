@@ -422,6 +422,34 @@ button { -webkit-tap-highlight-color: transparent; }
 .attachment-preview.visible { display: flex; }
 .attachment-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
 
+/* Modal Pro */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(37, 34, 56, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+.custom-modal {
+  width: min(450px, 100%);
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 50px rgba(61, 39, 130, 0.2);
+}
+
+.custom-modal h3 { margin: 0 0 10px; font-size: 18px; font-weight: 800; color: var(--text); }
+.custom-modal p { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
 .toast {
   position: fixed;
   left: 50%;
@@ -448,12 +476,6 @@ button { -webkit-tap-highlight-color: transparent; }
   }
   .sidebar.open { transform: translateX(0); }
   .menu-toggle-btn { display: block; }
-  .topbar { padding: 12px 15px; }
-  .mobile-logo { display: grid; width: 38px; height: 38px; }
-  .content { padding: 20px 15px; }
-  .composer-wrap { padding: 8px 12px; }
-  .bubble { font-size: 13px; max-width: calc(100% - 30px); }
-  .suggestions { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -479,10 +501,9 @@ button { -webkit-tap-highlight-color: transparent; }
       </div>
     </div>
 
-    <!-- Azrar New Chat -->
     <button class="primary-button" id="sidebarNewChatBtn" type="button">＋ Nouvelle discussion</button>
 
-    <!-- Navigation Pro Options -->
+    <!-- Nav Azrar elli kanou ma y'7edmouch -->
     <button class="sidebar-nav-btn" id="navFavorites" type="button">⭐ Messages Favoris</button>
     <button class="sidebar-nav-btn" id="navFiles" type="button">📁 Fichiers & Images</button>
     <button class="sidebar-nav-btn" id="navSettings" type="button">⚙️ Paramètres</button>
@@ -557,7 +578,7 @@ button { -webkit-tap-highlight-color: transparent; }
         <div class="attachment-preview" id="attachmentPreview">
           <img id="attachmentImage" alt="Aperçu">
           <span id="attachmentInfo"></span>
-          <button id="removeAttachment" type="button">×"></button>
+          <button id="removeAttachment" type="button">×</button>
         </div>
 
         <textarea id="promptInput" rows="1" placeholder="Écrivez votre message à ASSTRA AI…"></textarea>
@@ -572,6 +593,15 @@ button { -webkit-tap-highlight-color: transparent; }
       </div>
     </div>
   </main>
+</div>
+
+<!-- Modal Unique Pro -->
+<div class="modal-backdrop" id="customModal">
+  <div class="custom-modal">
+    <h3 id="modalTitle">Titre</h3>
+    <div id="modalBody" style="margin-bottom: 20px; font-size: 13px; color: var(--muted); max-height: 250px; overflow-y: auto;"></div>
+    <button class="primary-button" id="closeModalBtn" type="button">Fermer</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -591,7 +621,9 @@ button { -webkit-tap-highlight-color: transparent; }
     attachmentInfo: $("attachmentInfo"), removeAttachment: $("removeAttachment"),
     toast: $("toast"), sidebar: $("sidebar"), menuToggle: $("menuToggleBtn"),
     clearChatBtn: $("clearChatBtn"), clearInputBtn: $("clearInputBtn"),
-    sidebarNewChat: $("sidebarNewChatBtn"), topNewChat: $("topNewChatBtn")
+    sidebarNewChat: $("sidebarNewChatBtn"), topNewChat: $("topNewChatBtn"),
+    navFavorites: $("navFavorites"), navFiles: $("navFiles"), navSettings: $("navSettings"),
+    customModal: $("customModal"), modalTitle: $("modalTitle"), modalBody: $("modalBody"), closeModalBtn: $("closeModalBtn")
   };
 
   let conversations = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -601,6 +633,35 @@ button { -webkit-tap-highlight-color: transparent; }
 
   function makeId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function showToast(m) { elements.toast.textContent = m; elements.toast.classList.add("visible"); setTimeout(() => elements.toast.classList.remove("visible"), 3000); }
+
+  function openModal(title, htmlContent) {
+    elements.modalTitle.textContent = title;
+    elements.modalBody.innerHTML = htmlContent;
+    elements.customModal.classList.add("visible");
+  }
+
+  elements.closeModalBtn.onclick = () => elements.customModal.classList.remove("visible");
+
+  // Fonctions des boutons Sidebar
+  elements.navFavorites.onclick = () => {
+    openModal("⭐ Messages Favoris", "<p>Aucun message favori enregistré pour le moment. Vous pourrez bientôt épingler vos meilleures réponses ici !</p>");
+  };
+
+  elements.navFiles.onclick = () => {
+    openModal("📁 Fichiers & Images", "<p>Gestionnaire de fichiers et images partagées dans les discussions en cours.</p>");
+  };
+
+  elements.navSettings.onclick = () => {
+    openModal("⚙️ Paramètres ASSTRA AI", `
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div><strong>Créateur :</strong> Youssef</div>
+        <div><strong>Version :</strong> 2.5 Premium Pro</div>
+        <div><strong>Modèle IA :</strong> Google Gemini Flash Vision</div>
+        <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+        <button class="secondary-button" onclick="localStorage.clear(); location.reload();" style="width:100%; color:red;">🗑️ Réinitialiser toutes les données</button>
+      </div>
+    `);
+  };
 
   function setBusy(busy) {
     isSending = busy;
@@ -703,6 +764,17 @@ button { -webkit-tap-highlight-color: transparent; }
   elements.topNewChat.onclick = createNewChat;
   elements.clearInputBtn.onclick = () => { elements.prompt.value = ""; elements.prompt.focus(); };
   elements.menuToggle.onclick = () => elements.sidebar.classList.toggle("open");
+
+  elements.clearChatBtn.onclick = () => {
+    if (confirm("Voulez-vous effacer cette discussion ?")) {
+      conversations = conversations.filter(c => c.id !== activeId);
+      activeId = conversations[0]?.id || null;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+      renderMessages();
+      renderHistory();
+      showToast("Discussion effacée.");
+    }
+  };
 
   elements.imageButton.onclick = () => elements.imageInput.click();
   elements.imageInput.onchange = e => {
