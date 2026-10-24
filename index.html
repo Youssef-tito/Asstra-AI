@@ -80,11 +80,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   place-items: center;
   border-radius: 16px;
   color: white;
-  background: linear-gradient(145deg, #a28cff, #6745ed 65%, #4e32ce);
-  box-shadow: 0 5px 22px rgba(112, 84, 247, .38);
+  background: linear-gradient(145deg, #100a20, #06040c);
+  box-shadow: 0 5px 22px rgba(112, 84, 247, .25);
+  padding: 6px;
 }
 
-.brand-logo svg { width: 29px; height: 29px; }
+.brand-logo svg { width: 100%; height: 100%; }
 
 .brand-name {
   font-size: 21px;
@@ -316,11 +317,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   display: grid;
   place-items: center;
   border-radius: 23px;
-  background: linear-gradient(145deg, #a18bff, #6744ee 70%, #4f31d0);
+  background: linear-gradient(145deg, #0f0c1a, #05040a);
   box-shadow: 0 9px 35px rgba(112,84,247,.29);
+  padding: 10px;
 }
 
-.welcome-emblem svg { width: 43px; height: 43px; }
+.welcome-emblem svg { width: 100%; height: 100%; }
 
 .eyebrow {
   display: flex;
@@ -799,6 +801,39 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   box-shadow: 0 6px 20px rgba(112, 84, 247, 0.4);
 }
 
+.ios-instructions {
+  text-align: left;
+  background: #f9f8fe;
+  border: 1px solid #eee8ff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ios-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #433d59;
+}
+
+.ios-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--purple-light);
+  color: var(--purple);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
 .toast {
   position: fixed;
   left: 50%;
@@ -840,10 +875,11 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     place-items: center;
     border-radius: 12px;
     color: #fff;
-    background: linear-gradient(145deg, #a18aff, #6745ed);
+    background: linear-gradient(145deg, #0c0a17, #05040a);
     box-shadow: 0 4px 12px rgba(112,84,247,.25);
+    padding: 4px;
   }
-  .mobile-logo svg { width: 23px; height: 23px; }
+  .mobile-logo svg { width: 100%; height: 100%; }
   .topbar-title { font-size: 13px; }
   .topbar-status { font-size: 10px; }
   .topbar-actions { gap: 5px; }
@@ -875,9 +911,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <svg viewBox="0 0 100 100" fill="none">
-          <path d="M50 5 L62 38 L95 50 L62 62 L50 95 L38 62 L5 50 L38 38 Z" fill="white"/>
-          <circle cx="78" cy="20" r="5" fill="#E8DEFF"/>
+        <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 225 100 C 240 85, 260 85, 275 100 L 380 280 C 388 293, 378 310, 362 310 L 322 310 L 282 230 L 218 230 L 182 310 L 142 310 Z" fill="white"/>
+          <path d="M 100 300 C 190 325, 310 320, 375 235 C 405 195, 412 155, 395 130 C 355 230, 185 305, 100 300 Z" fill="#00c8ff"/>
+          <path d="M 390 90 C 390 115, 370 135, 345 135 C 370 135, 390 155, 390 180 C 390 155, 410 135, 435 135 C 410 135, 390 115, 390 90 Z" fill="#9a41ff"/>
         </svg>
       </div>
       <div>
@@ -910,9 +947,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     <header class="topbar">
       <div class="topbar-left">
         <div class="mobile-logo" aria-hidden="true">
-          <svg viewBox="0 0 100 100" fill="none">
-            <path d="M50 5 L62 38 L95 50 L62 62 L50 95 L38 62 L5 50 L38 38 Z" fill="white"/>
-            <circle cx="78" cy="20" r="5" fill="#E8DEFF"/>
+          <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 225 100 C 240 85, 260 85, 275 100 L 380 280 C 388 293, 378 310, 362 310 L 322 310 L 282 230 L 218 230 L 182 310 L 142 310 Z" fill="white"/>
+            <path d="M 100 300 C 190 325, 310 320, 375 235 C 405 195, 412 155, 395 130 C 355 230, 185 305, 100 300 Z" fill="#00c8ff"/>
+            <path d="M 390 90 C 390 115, 370 135, 345 135 C 370 135, 390 155, 390 180 C 390 155, 410 135, 435 135 C 410 135, 390 115, 390 90 Z" fill="#9a41ff"/>
           </svg>
         </div>
         <div>
@@ -946,9 +984,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     <section class="content">
       <section class="welcome" id="welcome">
         <div class="welcome-emblem" aria-hidden="true">
-          <svg viewBox="0 0 100 100" fill="none">
-            <path d="M50 5 L62 38 L95 50 L62 62 L50 95 L38 62 L5 50 L38 38 Z" fill="white"/>
-            <circle cx="78" cy="20" r="5" fill="#E8DEFF"/>
+          <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 225 100 C 240 85, 260 85, 275 100 L 380 280 C 388 293, 378 310, 362 310 L 322 310 L 282 230 L 218 230 L 182 310 L 142 310 Z" fill="white"/>
+            <path d="M 100 300 C 190 325, 310 320, 375 235 C 405 195, 412 155, 395 130 C 355 230, 185 305, 100 300 Z" fill="#00c8ff"/>
+            <path d="M 390 90 C 390 115, 370 135, 345 135 C 370 135, 390 155, 390 180 C 390 155, 410 135, 435 135 C 410 135, 390 115, 390 90 Z" fill="#9a41ff"/>
           </svg>
         </div>
 
@@ -1048,7 +1087,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </main>
 </div>
 
-<!-- Modal Install Popup Dialog Direct -->
+<!-- Modal Install Standard (Android / PC) -->
 <div class="install-modal-backdrop" id="installModalBackdrop">
   <div class="install-modal" role="dialog" aria-modal="true">
     <div class="install-modal-icon">✦</div>
@@ -1062,7 +1101,29 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   </div>
 </div>
 
-<!-- Modal d'authentification (Connexion / Inscription) -->
+<!-- Modal Install Spécial iOS (iPhone) -->
+<div class="install-modal-backdrop" id="iosModalBackdrop">
+  <div class="install-modal" role="dialog" aria-modal="true">
+    <div class="install-modal-icon">📲</div>
+    <h3>Installer sur iPhone</h3>
+    <p>Suivez ces 2 étapes simples sur Safari pour ajouter ASSTRA AI à votre écran d'accueil :</p>
+
+    <div class="ios-instructions">
+      <div class="ios-step">
+        <div class="ios-step-num">1</div>
+        <span>Appuyez sur le bouton <strong>Partager</strong> <span style="font-size: 16px;">⎘</span> en bas de votre écran.</span>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">2</div>
+        <span>Sélectionnez <strong>Sur l'écran d'accueil</strong> <span style="font-size: 16px;">➕</span>.</span>
+      </div>
+    </div>
+
+    <button class="install-modal-btn btn-install" id="closeIosModalBtn" type="button" style="width: 100%;">Compris !</button>
+  </div>
+</div>
+
+<!-- Modal Authentification (Connexion / Inscription) -->
 <div class="install-modal-backdrop" id="authModalBackdrop" style="display: none;">
   <div class="install-modal" role="dialog" aria-modal="true">
     <div class="install-modal-icon">✦</div>
@@ -1114,6 +1175,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     acceptInstall: $("acceptInstallBtn"),
     refuseInstall: $("refuseInstallBtn"),
     headerInstallBtn: $("headerInstallBtn"),
+    iosModal: $("iosModalBackdrop"),
+    closeIosModalBtn: $("closeIosModalBtn"),
     openAuthBtn: $("openAuthBtn"),
     userAvatar: $("userAvatar"),
     authModal: $("authModalBackdrop"),
@@ -1620,7 +1683,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     const triggerInstall = async () => {
       elements.installBackdrop.classList.remove("visible");
 
-      // 1. Android / Chrome / Windows PWA Install Prompt
+      // 1. Android / PC (Chrome, Edge, Brave...)
       if (installPrompt) {
         installPrompt.prompt();
         try {
@@ -1633,15 +1696,21 @@ button:disabled { opacity: .55; cursor: not-allowed; }
         return;
       }
 
-      // 2. iOS / Safari Device Detection
+      // 2. iOS (iPhone / iPad) - Safari & Chrome
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isChromeIOS = /Crios/i.test(navigator.userAgent);
+
       if (isIOS) {
-        showToast("Pour installer sur iPhone : appuyez sur le bouton Partager (⎘) puis 'Sur l'écran d'accueil'.");
+        if (isChromeIOS) {
+          showToast("Sur Chrome iOS : appuyez sur le menu (···) en haut à droite, puis 'Ajouter à l'écran d'accueil'.");
+        } else {
+          elements.iosModal.classList.add("visible");
+        }
         return;
       }
 
-      // 3. Autre navigateur / Desktop
-      showToast("L'installation directe n'est pas disponible sur ce navigateur.");
+      // 3. Autre
+      showToast("L'installation est déjà faite ou non supportée sur ce navigateur.");
     };
 
     elements.acceptInstall.addEventListener("click", triggerInstall);
@@ -1652,13 +1721,19 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       sessionStorage.setItem("asstra_install_refused", "true");
     });
 
+    if (elements.closeIosModalBtn) {
+      elements.closeIosModalBtn.addEventListener("click", () => {
+        elements.iosModal.classList.remove("visible");
+      });
+    }
+
     window.addEventListener("appinstalled", () => {
       elements.installBackdrop.classList.remove("visible");
       showToast("ASSTRA AI a été installé avec succès !");
     });
   }
 
-  // Auth Modal Management
+  // Modale d'authentification
   elements.openAuthBtn.addEventListener("click", () => {
     elements.authModal.style.display = "grid";
     elements.authModal.classList.add("visible");
