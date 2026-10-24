@@ -28,6 +28,7 @@
 html, body {
   margin: 0;
   min-height: 100%;
+  width: 100%;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   background: #fff;
   color: var(--text);
@@ -37,7 +38,7 @@ body { min-height: 100vh; }
 button, textarea, input { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
 
-.app { min-height: 100vh; display: flex; }
+.app { min-height: 100vh; width: 100%; display: flex; }
 
 .sidebar {
   width: var(--sidebar-width);
@@ -48,8 +49,18 @@ button { -webkit-tap-highlight-color: transparent; }
   padding: 24px 16px;
   background: #fcfbff;
   border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  transform: translateX(-100%);
   transition: transform .3s ease;
-  z-index: 100;
+  z-index: 1000;
+}
+
+.sidebar.open { transform: translateX(0); }
+
+@media (min-width: 769px) {
+  .sidebar { position: static; transform: translateX(0); }
+  .menu-toggle-btn { display: none !important; }
 }
 
 .brand {
@@ -60,8 +71,8 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .brand-logo, .mobile-logo, .welcome-emblem {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -70,7 +81,7 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .brand-logo svg, .mobile-logo svg, .welcome-emblem svg { width: 100%; height: 100%; }
 
-.brand-name { font-size: 21px; font-weight: 850; letter-spacing: -.8px; }
+.brand-name { font-size: 20px; font-weight: 850; letter-spacing: -.8px; }
 
 .gradient-text {
   color: var(--purple);
@@ -80,20 +91,20 @@ button { -webkit-tap-highlight-color: transparent; }
   -webkit-text-fill-color: transparent;
 }
 
-.brand-caption { margin-top: 3px; font-size: 11px; color: var(--muted); }
+.brand-caption { margin-top: 2px; font-size: 10px; color: var(--muted); }
 
 .primary-button {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   width: 100%;
-  min-height: 47px;
-  padding: 12px;
-  border-radius: 14px;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 12px;
   color: #fff;
   background: linear-gradient(110deg, #8e75ff, #6545ec);
-  box-shadow: 0 6px 17px rgba(112, 84, 247, .2);
+  box-shadow: 0 5px 15px rgba(112, 84, 247, .2);
   font-size: 13px;
   font-weight: 700;
   border: 0;
@@ -105,10 +116,10 @@ button { -webkit-tap-highlight-color: transparent; }
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 12px;
-  margin-top: 6px;
+  padding: 9px 12px;
+  margin-top: 5px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 10px;
   background: transparent;
   color: #555168;
   font-size: 12px;
@@ -119,7 +130,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .sidebar-nav-btn:hover { background: #f2edff; color: var(--purple); }
 
 .sidebar-section-title {
-  margin: 20px 7px 10px;
+  margin: 18px 7px 8px;
   color: #aaa5bb;
   font-size: 10px;
   font-weight: 800;
@@ -129,8 +140,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  max-height: 35vh;
+  gap: 4px;
+  max-height: 38vh;
   overflow-y: auto;
 }
 
@@ -138,8 +149,8 @@ button { -webkit-tap-highlight-color: transparent; }
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px;
-  border-radius: 11px;
+  padding: 2px;
+  border-radius: 10px;
 }
 
 .history-item.active { background: #f0ecff; }
@@ -147,7 +158,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .history-item-title {
   flex: 1;
   min-width: 0;
-  padding: 8px 7px;
+  padding: 7px 8px;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -160,29 +171,30 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .history-delete {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   background: transparent;
   color: #a09aae;
   cursor: pointer;
 }
 
-.sidebar-spacer { flex: 1; min-height: 20px; }
+.sidebar-spacer { flex: 1; min-height: 15px; }
 
 .creator-card {
-  padding: 14px;
+  padding: 12px;
   border: 1px solid #e9e2ff;
-  border-radius: 16px;
+  border-radius: 14px;
   background: linear-gradient(145deg, #fff, #f5f1ff);
 }
 
-.creator-card strong { color: var(--purple); font-size: 12px; }
-.creator-card p { margin: 6px 0 0; color: #817b96; font-size: 11px; line-height: 1.6; }
+.creator-card strong { color: var(--purple); font-size: 11px; }
+.creator-card p { margin: 4px 0 0; color: #817b96; font-size: 10px; line-height: 1.5; }
 
 .main {
   flex: 1;
+  width: 100%;
   min-width: 0;
   min-height: 100vh;
   display: flex;
@@ -190,52 +202,57 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .topbar {
-  min-height: 76px;
-  padding: 15px 30px;
+  min-height: 70px;
+  width: 100%;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
+  gap: 10px;
   border-bottom: 1px solid #f0edf7;
-  background: rgba(255,255,255,.94);
+  background: rgba(255,255,255,.95);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.topbar-left { display: flex; align-items: center; gap: 11px; }
+.topbar-left { display: flex; align-items: center; gap: 8px; }
 
 .menu-toggle-btn {
-  display: none;
   background: transparent;
   border: 0;
   font-size: 22px;
   color: var(--text);
   cursor: pointer;
+  padding: 2px;
 }
 
-.topbar-title { font-size: 16px; font-weight: 800; }
+.topbar-title { font-size: 14px; font-weight: 800; }
 
 .topbar-status {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 5px;
+  gap: 5px;
+  margin-top: 2px;
   color: #9892a9;
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #40c994; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #40c994; }
 
-.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
 .secondary-button {
-  min-height: 38px;
-  padding: 9px 12px;
+  min-height: 32px;
+  padding: 6px 9px;
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 9px;
   background: white;
   color: #625c76;
   font-size: 11px;
   font-weight: 650;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-header-install {
@@ -245,13 +262,13 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .user-avatar-btn {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(145deg, #a18aff, #6745ed);
   color: white;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13px;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -259,111 +276,122 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .content {
   width: 100%;
-  max-width: 1000px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 42px 28px 30px;
+  padding: 25px 16px 20px;
   flex: 1;
 }
 
-.welcome { max-width: 790px; margin: 0 auto; }
-.welcome-emblem { width: 68px; height: 68px; margin: 0 auto 20px; }
+.welcome { width: 100%; max-width: 100%; margin: 0 auto; text-align: center; }
+.welcome-emblem { width: 60px; height: 60px; margin: 0 auto 15px; }
 
 .eyebrow {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: var(--purple);
   font-size: 10px;
   font-weight: 800;
 }
 
 .welcome h1 {
-  margin: 16px 0 13px;
-  text-align: center;
-  font-size: clamp(27px, 4vw, 42px);
+  margin: 12px 0 20px;
+  font-size: clamp(22px, 4vw, 34px);
   line-height: 1.2;
 }
 
 .suggestions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 12px;
-  margin-top: 25px;
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .suggestions { grid-template-columns: 1fr; }
 }
 
 .suggestion {
-  min-height: 118px;
-  padding: 17px;
+  min-height: 100px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
+  text-align: left;
   border: 1px solid #eeebf7;
-  border-radius: 17px;
+  border-radius: 14px;
   background: #fff;
   cursor: pointer;
 }
 
-.messages { display: flex; flex-direction: column; gap: 20px; padding-bottom: 20px; }
+.suggestion strong { font-size: 12px; margin-bottom: 4px; }
+.suggestion span { color: var(--muted); font-size: 11px; }
 
-.message { display: flex; align-items: flex-start; gap: 12px; }
-.message.user { flex-direction: row-reverse; align-self: flex-end; }
-.message.assistant { align-self: flex-start; }
+.messages { display: flex; flex-direction: column; gap: 16px; width: 100%; padding-bottom: 20px; }
+
+.message { display: flex; align-items: flex-start; gap: 10px; width: 100%; }
+.message.user { flex-direction: row-reverse; justify-content: flex-start; }
+.message.assistant { justify-content: flex-start; }
 
 .avatar {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(145deg, #a18aff, #6745ed);
   color: white;
   font-weight: 800;
+  font-size: 13px;
 }
 
 .message.user .avatar { background: #eeeaff; color: #7054f7; }
 
 .bubble {
   min-width: 0;
-  max-width: min(760px, calc(100% - 45px));
-  padding: 15px 18px;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 16px;
   border: 1px solid #efedf6;
-  border-radius: 4px 17px 17px 17px;
+  border-radius: 4px 14px 14px 14px;
   background: white;
   color: #373348;
   font-size: 13px;
-  line-height: 1.85;
+  line-height: 1.7;
 }
 
-.message.user .bubble { background: #f5f2ff; border-color: #ebe5ff; border-radius: 17px 4px 17px 17px; }
+.message.user .bubble { background: #f5f2ff; border-color: #ebe5ff; border-radius: 14px 4px 14px 14px; }
 
 .composer-wrap {
   position: sticky;
   bottom: 0;
   z-index: 5;
-  padding: 12px 25px 10px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 18%);
+  width: 100%;
+  padding: 10px 16px 12px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 20%);
 }
 
 .composer {
   width: 100%;
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 14px 15px 12px;
+  padding: 12px 14px 10px;
   border: 1px solid #e6e0f5;
-  border-radius: 20px;
+  border-radius: 18px;
   background: #fff;
-  box-shadow: 0 7px 30px rgba(60,40,120,.08);
+  box-shadow: 0 5px 25px rgba(60,40,120,.07);
 }
 
 #promptInput {
   width: 100%;
-  min-height: 40px;
-  max-height: 160px;
+  min-height: 38px;
+  max-height: 140px;
   resize: none;
   border: 0;
   outline: 0;
-  padding: 7px 4px;
+  padding: 4px;
   background: transparent;
   font-size: 13px;
 }
@@ -372,19 +400,19 @@ button { -webkit-tap-highlight-color: transparent; }
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 8px;
+  gap: 6px;
+  padding-top: 6px;
   border-top: 1px solid #f2eff8;
 }
 
 .tool-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 8px 12px;
+  gap: 5px;
+  min-height: 32px;
+  padding: 6px 10px;
   border: 1px solid #ece8f6;
-  border-radius: 11px;
+  border-radius: 9px;
   background: white;
   color: #716b85;
   font-size: 11px;
@@ -392,18 +420,16 @@ button { -webkit-tap-highlight-color: transparent; }
   cursor: pointer;
 }
 
-.tool-button:hover { background: #f6f2ff; border-color: #d9ceff; color: var(--purple); }
-
 .send-button {
-  width: 37px;
-  height: 37px;
+  width: 35px;
+  height: 35px;
   margin-left: auto;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(145deg, #8f76ff, #6344ec);
   color: white;
-  font-size: 22px;
+  font-size: 20px;
   border: 0;
   cursor: pointer;
 }
@@ -411,54 +437,54 @@ button { -webkit-tap-highlight-color: transparent; }
 .attachment-preview {
   display: none;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding: 8px;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px;
   border: 1px solid #eae4ff;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #faf8ff;
+  width: 100%;
 }
 
 .attachment-preview.visible { display: flex; }
-.attachment-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+.attachment-preview img { width: 38px; height: 38px; object-fit: cover; border-radius: 6px; }
 
-/* Modal Pro */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(37, 34, 56, 0.5);
-  backdrop-filter: blur(5px);
-  z-index: 9999;
+  backdrop-filter: blur(4px);
+  z-index: 2000;
   display: grid;
   place-items: center;
   padding: 20px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 
 .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
 
 .custom-modal {
-  width: min(450px, 100%);
+  width: min(400px, 100%);
   background: #fff;
-  border-radius: 24px;
-  padding: 28px 24px;
-  box-shadow: 0 20px 50px rgba(61, 39, 130, 0.2);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 15px 40px rgba(61, 39, 130, 0.2);
 }
 
-.custom-modal h3 { margin: 0 0 10px; font-size: 18px; font-weight: 800; color: var(--text); }
-.custom-modal p { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.custom-modal h3 { margin: 0 0 8px; font-size: 17px; font-weight: 800; }
+.custom-modal p { margin: 0 0 15px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 85px;
-  z-index: 30;
-  padding: 12px 17px;
-  border-radius: 13px;
+  bottom: 80px;
+  z-index: 3000;
+  padding: 10px 15px;
+  border-radius: 11px;
   background: white;
-  box-shadow: 0 8px 30px rgba(40,20,90,.13);
+  box-shadow: 0 6px 25px rgba(40,20,90,.15);
   font-size: 12px;
   opacity: 0;
   transform: translate(-50%, 8px);
@@ -466,17 +492,6 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
-
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    transform: translateX(-100%);
-    box-shadow: 0 0 30px rgba(0,0,0,0.15);
-  }
-  .sidebar.open { transform: translateX(0); }
-  .menu-toggle-btn { display: block; }
-}
 </style>
 </head>
 
@@ -502,18 +517,16 @@ button { -webkit-tap-highlight-color: transparent; }
     </div>
 
     <button class="primary-button" id="sidebarNewChatBtn" type="button">＋ Nouvelle discussion</button>
-
-    <button class="sidebar-nav-btn" id="navFavorites" type="button">⭐ Messages Favoris</button>
-    <button class="sidebar-nav-btn" id="navFiles" type="button">📁 Fichiers & Images</button>
+    <button class="sidebar-nav-btn" id="navFavorites" type="button">⭐ Favoris</button>
+    <button class="sidebar-nav-btn" id="navFiles" type="button">📁 Fichiers</button>
 
     <div class="sidebar-section-title">VOS DISCUSSIONS</div>
     <div class="history-list" id="historyList"></div>
 
     <div class="sidebar-spacer"></div>
-
     <div class="creator-card">
       <strong>✦ ASSTRA AI</strong>
-      <p>Créé par Youssef pour vous accompagner dans vos projets.</p>
+      <p>Créé par Youssef.</p>
     </div>
   </aside>
 
@@ -521,13 +534,6 @@ button { -webkit-tap-highlight-color: transparent; }
     <header class="topbar">
       <div class="topbar-left">
         <button class="menu-toggle-btn" id="menuToggleBtn" type="button">☰</button>
-        <div class="mobile-logo">
-          <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 225 100 C 240 85, 260 85, 275 100 L 380 280 C 388 293, 378 310, 362 310 L 322 310 L 282 230 L 218 230 L 182 310 L 142 310 Z" fill="url(#aGrad)"/>
-            <path d="M 100 300 C 190 325, 310 320, 375 235 C 405 195, 412 155, 395 130 C 355 230, 185 305, 100 300 Z" fill="url(#orbitGrad)"/>
-            <path d="M 390 90 C 390 115, 370 135, 345 135 C 370 135, 390 155, 390 180 C 390 155, 410 135, 435 135 C 410 135, 390 115, 390 90 Z" fill="#b066ff"/>
-          </svg>
-        </div>
         <div>
           <div class="topbar-title">ASSTRA AI <span class="gradient-text">Premium</span></div>
           <div class="topbar-status"><span class="status-dot"></span><span id="statusText">Assistant prêt</span></div>
@@ -575,8 +581,8 @@ button { -webkit-tap-highlight-color: transparent; }
       <div class="composer">
         <div class="attachment-preview" id="attachmentPreview">
           <img id="attachmentImage" alt="Aperçu">
-          <span id="attachmentInfo"></span>
-          <button id="removeAttachment" type="button">×</button>
+          <span id="attachmentInfo" style="font-size:11px; color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis;"></span>
+          <button id="removeAttachment" type="button" style="border:0; background:transparent; color:red; font-size:16px; cursor:pointer;">×</button>
         </div>
 
         <textarea id="promptInput" rows="1" placeholder="Écrivez votre message à ASSTRA AI…"></textarea>
@@ -597,7 +603,7 @@ button { -webkit-tap-highlight-color: transparent; }
 <div class="modal-backdrop" id="customModal">
   <div class="custom-modal">
     <h3 id="modalTitle">Titre</h3>
-    <div id="modalBody" style="margin-bottom: 20px; font-size: 13px; color: var(--muted); max-height: 250px; overflow-y: auto;"></div>
+    <div id="modalBody" style="margin-bottom: 20px; font-size: 12px; color: var(--muted); max-height: 220px; overflow-y: auto;"></div>
     <button class="primary-button" id="closeModalBtn" type="button">Fermer</button>
   </div>
 </div>
@@ -607,8 +613,8 @@ button { -webkit-tap-highlight-color: transparent; }
   <div class="custom-modal">
     <h3>Connexion ASSTRA AI</h3>
     <p>Entrez votre email pour accéder à votre espace personnel.</p>
-    <input type="email" id="authEmailInput" placeholder="votre.email@gmail.com" style="width:100%; padding:11px; margin-bottom:15px; border:1px solid var(--border); border-radius:12px; outline:none;">
-    <div style="display:flex; gap:10px;">
+    <input type="email" id="authEmailInput" placeholder="votre.email@gmail.com" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid var(--border); border-radius:10px; outline:none;">
+    <div style="display:flex; gap:8px;">
       <button class="secondary-button" id="authCancelBtn" type="button" style="flex:1;">Annuler</button>
       <button class="primary-button" id="authSubmitBtn" type="button" style="flex:1;">Se connecter</button>
     </div>
@@ -680,14 +686,14 @@ button { -webkit-tap-highlight-color: transparent; }
       localStorage.setItem("asstra_user_email", email);
       updateAuthUI();
       elements.authModal.classList.remove("visible");
-      showToast("Connecté avec succès !");
+      showToast("Connecté !");
     } else {
-      showToast("Veuillez entrer un email valide.");
+      showToast("Entrez un email valide.");
     }
   };
 
   elements.userAvatar.onclick = () => {
-    if (confirm("Voulez-vous vous déconnecter ?")) {
+    if (confirm("Se déconnecter ?")) {
       currentUserEmail = "";
       localStorage.removeItem("asstra_user_email");
       updateAuthUI();
@@ -699,18 +705,16 @@ button { -webkit-tap-highlight-color: transparent; }
   elements.headerInstallBtn.onclick = async () => {
     if (installPrompt) {
       installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === "accepted") showToast("Installation lancée !");
       installPrompt = null;
     } else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-      openModal("📲 Installer sur iPhone", "<p>Appuyez sur le bouton <strong>Partager</strong> ⎘ puis <strong>Sur l'écran d'accueil</strong> ➕.</p>");
+      openModal("📲 Installer sur iPhone", "<p>Appuyez sur <strong>Partager</strong> ⎘ puis <strong>Sur l'écran d'accueil</strong> ➕.</p>");
     } else {
-      showToast("L'application est déjà installée ou prête.");
+      showToast("Déjà installé ou non supporté.");
     }
   };
 
-  elements.navFavorites.onclick = () => openModal("⭐ Messages Favoris", "<p>Aucun message favori enregistré.</p>");
-  elements.navFiles.onclick = () => openModal("📁 Fichiers & Images", "<p>Aucun fichier récent.</p>");
+  elements.navFavorites.onclick = () => openModal("⭐ Favoris", "<p>Aucun message favori.</p>");
+  elements.navFiles.onclick = () => openModal("📁 Fichiers", "<p>Aucun fichier récent.</p>");
 
   function setBusy(busy) {
     isSending = busy;
@@ -727,6 +731,7 @@ button { -webkit-tap-highlight-color: transparent; }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
     renderHistory();
     renderMessages();
+    if (window.innerWidth <= 768) elements.sidebar.classList.remove("open");
   }
 
   function renderHistory() {
@@ -735,7 +740,12 @@ button { -webkit-tap-highlight-color: transparent; }
       const row = document.createElement("div");
       row.className = "history-item" + (chat.id === activeId ? " active" : "");
       row.innerHTML = `<button class="history-item-title">${chat.title}</button><button class="history-delete">×</button>`;
-      row.querySelector(".history-item-title").onclick = () => { activeId = chat.id; renderMessages(); renderHistory(); };
+      row.querySelector(".history-item-title").onclick = () => { 
+        activeId = chat.id; 
+        renderMessages(); 
+        renderHistory(); 
+        if (window.innerWidth <= 768) elements.sidebar.classList.remove("open");
+      };
       row.querySelector(".history-delete").onclick = (e) => {
         e.stopPropagation();
         conversations = conversations.filter(c => c.id !== chat.id);
@@ -775,9 +785,8 @@ button { -webkit-tap-highlight-color: transparent; }
       conversations.unshift(chat);
     }
 
-    // تحديث عنوان Discussion مباشرة حسب أول محادثة
     if (chat.title === "Nouvelle discussion" && text) {
-      chat.title = text.length > 25 ? text.slice(0, 25) + "..." : text;
+      chat.title = text.length > 22 ? text.slice(0, 22) + "..." : text;
     }
 
     chat.messages.push({ role: "user", content: text || "Analyse cette image." });
@@ -821,13 +830,13 @@ button { -webkit-tap-highlight-color: transparent; }
   elements.menuToggle.onclick = () => elements.sidebar.classList.toggle("open");
 
   elements.clearChatBtn.onclick = () => {
-    if (confirm("Voulez-vous effacer cette discussion ?")) {
+    if (confirm("Effacer cette discussion ?")) {
       conversations = conversations.filter(c => c.id !== activeId);
       activeId = conversations[0]?.id || null;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
       renderMessages();
       renderHistory();
-      showToast("Discussion effacée.");
+      showToast("Effacée.");
     }
   };
 
