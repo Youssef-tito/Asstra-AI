@@ -4,13 +4,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, image, email } = req.body;
+    const { messages, image } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Messages invalides.' });
     }
 
-    // T'hezer a7sen messages w t'formati el-Vision ken fama image
+    // Formatage mta3 el-messages m3a el-Vision
     const formattedMessages = messages.map((msg, index) => {
       if (index === messages.length - 1 && image) {
         return {
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       return { role: msg.role, content: msg.content };
     });
 
-    // Appel lel OpenRouter / OpenAI API m3a Model Vision
+    // Request lel OpenRouter b-Model Gratuit 100% w Max Tokens Limit
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -34,7 +34,8 @@ export default async function handler(req, res) {
         'X-Title': 'ASSTRA AI'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash', // Model Pro m3a Vision
+        model: 'google/gemini-2.0-flash-lite-001', // Model gratuit & rapide m3a Vision
+        max_tokens: 1000, // Solution mta3 el-erreur token credits!
         messages: [
           {
             role: 'system',
