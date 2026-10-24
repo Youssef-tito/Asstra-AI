@@ -10,13 +10,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Messages invalides.' });
     }
 
-    // تنسيق الرسائل ودعم الصور (Vision)
     const formattedMessages = messages.map((msg, index) => {
       if (index === messages.length - 1 && image) {
         return {
           role: msg.role,
           content: [
-            { type: "text", text: msg.content || "Analyse cette image." },
+            { type: "text", text: msg.content || "Analyse cette image en détail." },
             { type: "image_url", image_url: { url: image } }
           ]
         };
@@ -24,7 +23,6 @@ export default async function handler(req, res) {
       return { role: msg.role, content: msg.content };
     });
 
-    // Request إلى OpenRouter بموديل شغال مجاني ومحدد الـ tokens
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -34,12 +32,12 @@ export default async function handler(req, res) {
         'X-Title': 'ASSTRA AI'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash', // موديل قوي جداً وشغال مع Vision
-        max_tokens: 1500, // تحديد عدد التوكينز لتفادي خطأ الرصيد
+        model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+        max_tokens: 1500,
         messages: [
           {
             role: 'system',
-            content: 'Tu es ASSTRA AI, un assistant intelligent créé par Youssef. Tu réponds de manière claire, efficace et professionnelle. Tu peux analyser les images avec précision.'
+            content: 'Tu es ASSTRA AI, un assistant intelligent créé par Youssef. Tu analyses les images avec une grande précision et réponds de manière claire.'
           },
           ...formattedMessages
         ]
