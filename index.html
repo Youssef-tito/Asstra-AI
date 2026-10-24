@@ -503,10 +503,8 @@ button { -webkit-tap-highlight-color: transparent; }
 
     <button class="primary-button" id="sidebarNewChatBtn" type="button">＋ Nouvelle discussion</button>
 
-    <!-- Nav Azrar elli kanou ma y'7edmouch -->
     <button class="sidebar-nav-btn" id="navFavorites" type="button">⭐ Messages Favoris</button>
     <button class="sidebar-nav-btn" id="navFiles" type="button">📁 Fichiers & Images</button>
-    <button class="sidebar-nav-btn" id="navSettings" type="button">⚙️ Paramètres</button>
 
     <div class="sidebar-section-title">VOS DISCUSSIONS</div>
     <div class="history-list" id="historyList"></div>
@@ -604,6 +602,19 @@ button { -webkit-tap-highlight-color: transparent; }
   </div>
 </div>
 
+<!-- Modal Connexion Directe -->
+<div class="modal-backdrop" id="authModal">
+  <div class="custom-modal">
+    <h3>Connexion ASSTRA AI</h3>
+    <p>Entrez votre email pour accéder à votre espace personnel.</p>
+    <input type="email" id="authEmailInput" placeholder="votre.email@gmail.com" style="width:100%; padding:11px; margin-bottom:15px; border:1px solid var(--border); border-radius:12px; outline:none;">
+    <div style="display:flex; gap:10px;">
+      <button class="secondary-button" id="authCancelBtn" type="button" style="flex:1;">Annuler</button>
+      <button class="primary-button" id="authSubmitBtn" type="button" style="flex:1;">Se connecter</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -622,14 +633,19 @@ button { -webkit-tap-highlight-color: transparent; }
     toast: $("toast"), sidebar: $("sidebar"), menuToggle: $("menuToggleBtn"),
     clearChatBtn: $("clearChatBtn"), clearInputBtn: $("clearInputBtn"),
     sidebarNewChat: $("sidebarNewChatBtn"), topNewChat: $("topNewChatBtn"),
-    navFavorites: $("navFavorites"), navFiles: $("navFiles"), navSettings: $("navSettings"),
-    customModal: $("customModal"), modalTitle: $("modalTitle"), modalBody: $("modalBody"), closeModalBtn: $("closeModalBtn")
+    navFavorites: $("navFavorites"), navFiles: $("navFiles"),
+    customModal: $("customModal"), modalTitle: $("modalTitle"), modalBody: $("modalBody"), closeModalBtn: $("closeModalBtn"),
+    openAuthBtn: $("openAuthBtn"), userAvatar: $("userAvatar"), authModal: $("authModal"),
+    authEmailInput: $("authEmailInput"), authCancelBtn: $("authCancelBtn"), authSubmitBtn: $("authSubmitBtn"),
+    headerInstallBtn: $("headerInstallBtn")
   };
 
   let conversations = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   let activeId = conversations[0]?.id || null;
   let selectedImage = null;
   let isSending = false;
+  let installPrompt = null;
+  let currentUserEmail = localStorage.getItem("asstra_user_email") || "";
 
   function makeId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function showToast(m) { elements.toast.textContent = m; elements.toast.classList.add("visible"); setTimeout(() => elements.toast.classList.remove("visible"), 3000); }
@@ -642,26 +658,60 @@ button { -webkit-tap-highlight-color: transparent; }
 
   elements.closeModalBtn.onclick = () => elements.customModal.classList.remove("visible");
 
-  // Fonctions des boutons Sidebar
-  elements.navFavorites.onclick = () => {
-    openModal("⭐ Messages Favoris", "<p>Aucun message favori enregistré pour le moment. Vous pourrez bientôt épingler vos meilleures réponses ici !</p>");
+  function updateAuthUI() {
+    if (currentUserEmail) {
+      elements.openAuthBtn.style.display = "none";
+      elements.userAvatar.style.display = "grid";
+      elements.userAvatar.textContent = currentUserEmail.charAt(0).toUpperCase();
+      elements.status.textContent = "Connecté (" + currentUserEmail + ")";
+    } else {
+      elements.openAuthBtn.style.display = "inline-flex";
+      elements.userAvatar.style.display = "none";
+      elements.status.textContent = "Assistant prêt";
+    }
+  }
+
+  elements.openAuthBtn.onclick = () => elements.authModal.classList.add("visible");
+  elements.authCancelBtn.onclick = () => elements.authModal.classList.remove("visible");
+  elements.authSubmitBtn.onclick = () => {
+    const email = elements.authEmailInput.value.trim();
+    if (email) {
+      currentUserEmail = email;
+      localStorage.setItem("asstra_user_email", email);
+      updateAuthUI();
+      elements.authModal.classList.remove("visible");
+      showToast("Connecté avec succès !");
+    } else {
+      showToast("Veuillez entrer un email valide.");
+    }
   };
 
-  elements.navFiles.onclick = () => {
-    openModal("📁 Fichiers & Images", "<p>Gestionnaire de fichiers et images partagées dans les discussions en cours.</p>");
+  elements.userAvatar.onclick = () => {
+    if (confirm("Voulez-vous vous déconnecter ?")) {
+      currentUserEmail = "";
+      localStorage.removeItem("asstra_user_email");
+      updateAuthUI();
+      showToast("Déconnecté.");
+    }
   };
 
-  elements.navSettings.onclick = () => {
-    openModal("⚙️ Paramètres ASSTRA AI", `
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <div><strong>Créateur :</strong> Youssef</div>
-        <div><strong>Version :</strong> 2.5 Premium Pro</div>
-        <div><strong>Modèle IA :</strong> Google Gemini Flash Vision</div>
-        <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
-        <button class="secondary-button" onclick="localStorage.clear(); location.reload();" style="width:100%; color:red;">🗑️ Réinitialiser toutes les données</button>
-      </div>
-    `);
+  // PWA Installer
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; });
+  elements.headerInstallBtn.onclick = async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === "accepted") showToast("Installation lancée !");
+      installPrompt = null;
+    } else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      openModal("📲 Installer sur iPhone", "<p>Appuyez sur le bouton <strong>Partager</strong> ⎘ puis <strong>Sur l'écran d'accueil</strong> ➕.</p>");
+    } else {
+      showToast("L'application est déjà installée ou prête.");
+    }
   };
+
+  elements.navFavorites.onclick = () => openModal("⭐ Messages Favoris", "<p>Aucun message favori enregistré.</p>");
+  elements.navFiles.onclick = () => openModal("📁 Fichiers & Images", "<p>Aucun fichier récent.</p>");
 
   function setBusy(busy) {
     isSending = busy;
@@ -799,6 +849,7 @@ button { -webkit-tap-highlight-color: transparent; }
   elements.send.onclick = sendMessage;
   elements.prompt.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
+  updateAuthUI();
   renderHistory();
   renderMessages();
 })();
