@@ -593,7 +593,7 @@ button { -webkit-tap-highlight-color: transparent; }
   </main>
 </div>
 
-<!-- Modal Unique Pro -->
+<!-- Modal Pro -->
 <div class="modal-backdrop" id="customModal">
   <div class="custom-modal">
     <h3 id="modalTitle">Titre</h3>
@@ -602,7 +602,7 @@ button { -webkit-tap-highlight-color: transparent; }
   </div>
 </div>
 
-<!-- Modal Connexion Directe -->
+<!-- Modal Connexion -->
 <div class="modal-backdrop" id="authModal">
   <div class="custom-modal">
     <h3>Connexion ASSTRA AI</h3>
@@ -621,7 +621,7 @@ button { -webkit-tap-highlight-color: transparent; }
 (() => {
   "use strict";
   const API_URL = "/api/ai";
-  const STORAGE_KEY = "asstra_ai_conversations_v2";
+  const STORAGE_KEY = "asstra_ai_conversations_v3";
 
   const $ = id => document.getElementById(id);
   const elements = {
@@ -695,7 +695,6 @@ button { -webkit-tap-highlight-color: transparent; }
     }
   };
 
-  // PWA Installer
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; });
   elements.headerInstallBtn.onclick = async () => {
     if (installPrompt) {
@@ -728,7 +727,6 @@ button { -webkit-tap-highlight-color: transparent; }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
     renderHistory();
     renderMessages();
-    showToast("Nouvelle discussion créée.");
   }
 
   function renderHistory() {
@@ -772,9 +770,14 @@ button { -webkit-tap-highlight-color: transparent; }
 
     let chat = conversations.find(c => c.id === activeId);
     if (!chat) {
-      chat = { id: activeId || makeId(), title: text.slice(0, 25) || "Discussion", messages: [] };
+      activeId = makeId();
+      chat = { id: activeId, title: text.slice(0, 25) || "Discussion", messages: [] };
       conversations.unshift(chat);
-      activeId = chat.id;
+    }
+
+    // تحديث عنوان Discussion مباشرة حسب أول محادثة
+    if (chat.title === "Nouvelle discussion" && text) {
+      chat.title = text.length > 25 ? text.slice(0, 25) + "..." : text;
     }
 
     chat.messages.push({ role: "user", content: text || "Analyse cette image." });
@@ -783,6 +786,7 @@ button { -webkit-tap-highlight-color: transparent; }
     selectedImage = null;
     elements.attachmentPreview.classList.remove("visible");
 
+    renderHistory();
     renderMessages();
     setBusy(true);
 
@@ -799,6 +803,7 @@ button { -webkit-tap-highlight-color: transparent; }
       const answer = data.choices?.[0]?.message?.content;
       chat.messages.push({ role: "assistant", content: answer });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+      renderHistory();
       renderMessages();
 
     } catch (e) {
@@ -850,6 +855,7 @@ button { -webkit-tap-highlight-color: transparent; }
   elements.prompt.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
   updateAuthUI();
+  if (conversations.length === 0) createNewChat();
   renderHistory();
   renderMessages();
 })();
