@@ -54,6 +54,8 @@ button { -webkit-tap-highlight-color: transparent; }
   padding: 24px 16px;
   background: #fcfbff;
   border-right: 1px solid var(--border);
+  transition: transform .3s ease;
+  z-index: 100;
 }
 
 .brand {
@@ -63,7 +65,7 @@ button { -webkit-tap-highlight-color: transparent; }
   padding: 4px 5px 25px;
 }
 
-/* Logo Clean بدون الفوند الأسود المغامق */
+/* Logo Standard PC & Mobile */
 .brand-logo, .mobile-logo, .welcome-emblem {
   width: 44px;
   height: 44px;
@@ -199,6 +201,15 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .topbar-left { display: flex; align-items: center; gap: 11px; }
+
+.menu-toggle-btn {
+  display: none;
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  color: var(--text);
+  cursor: pointer;
+}
 
 .topbar-title { font-size: 16px; font-weight: 800; }
 
@@ -369,6 +380,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .composer-tools {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid #f2eff8;
@@ -377,7 +389,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .tool-button, .voice-button {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   min-height: 36px;
   padding: 8px 12px;
   border: 1px solid #ece8f6;
@@ -388,6 +400,8 @@ button { -webkit-tap-highlight-color: transparent; }
   font-weight: 650;
   cursor: pointer;
 }
+
+.tool-button:hover, .voice-button:hover { background: #f6f2ff; border-color: #d9ceff; color: var(--purple); }
 
 .send-button {
   width: 37px;
@@ -415,7 +429,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .attachment-preview.visible { display: flex; }
 .attachment-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
 
-/* Modal & Toast */
+/* Modals & Toast */
 .install-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -457,11 +471,20 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 650px) {
-  .app { display: block; }
-  .sidebar { display: none; }
+/* Optimization Responsive Mobile Pro */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    box-shadow: 0 0 30px rgba(0,0,0,0.15);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .menu-toggle-btn { display: block; }
   .topbar { padding: 12px 15px; }
-  .mobile-logo { display: grid; width: 34px; height: 34px; }
+  .mobile-logo { display: grid; width: 38px; height: 38px; }
   .content { padding: 20px 15px; }
   .composer-wrap { padding: 8px 12px; }
   .bubble { font-size: 13px; max-width: calc(100% - 30px); }
@@ -472,7 +495,7 @@ button { -webkit-tap-highlight-color: transparent; }
 
 <body>
 <div class="app">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
         <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -505,6 +528,7 @@ button { -webkit-tap-highlight-color: transparent; }
   <main class="main">
     <header class="topbar">
       <div class="topbar-left">
+        <button class="menu-toggle-btn" id="menuToggleBtn" type="button">☰</button>
         <div class="mobile-logo" aria-hidden="true">
           <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M 225 100 C 240 85, 260 85, 275 100 L 380 280 C 388 293, 378 310, 362 310 L 322 310 L 282 230 L 218 230 L 182 310 L 142 310 Z" fill="url(#aGrad)"/>
@@ -525,6 +549,7 @@ button { -webkit-tap-highlight-color: transparent; }
         <button class="secondary-button btn-connexion" id="openAuthBtn" type="button">👤 Connexion</button>
         <div class="user-avatar-btn" id="userAvatar" style="display: none;">Y</div>
         <button class="secondary-button btn-header-install" id="headerInstallBtn" type="button">📲 Installer</button>
+        <button class="secondary-button" id="clearChatBtn" type="button">🗑️ Effacer</button>
         <button class="secondary-button" id="topNewChatButton" type="button">＋ Nouveau</button>
       </div>
     </header>
@@ -568,9 +593,10 @@ button { -webkit-tap-highlight-color: transparent; }
         <textarea id="promptInput" rows="1" placeholder="Écrivez votre message à ASSTRA AI…"></textarea>
 
         <div class="composer-tools">
-          <button class="tool-button" id="imageButton" type="button">＋ Image</button>
+          <button class="tool-button" id="imageButton" type="button">🖼️ Image</button>
           <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
           <button class="voice-button" id="voiceButton" type="button">🎙️ Voix</button>
+          <button class="tool-button" id="clearInputBtn" type="button">🧹 Nettoyer</button>
           <button class="send-button" id="sendButton" type="button">↑</button>
         </div>
       </div>
@@ -583,7 +609,6 @@ button { -webkit-tap-highlight-color: transparent; }
   <div class="install-modal">
     <h3>Installer ASSTRA AI</h3>
     <p>Installez l'application sur votre écran d'accueil.</p>
-
     <div style="display:flex; gap:10px; margin-top:15px;">
       <button class="secondary-button" id="refuseInstallBtn" type="button" style="flex:1;">Plus tard</button>
       <button class="primary-button" id="acceptInstallBtn" type="button" style="flex:1;">Installer</button>
@@ -637,7 +662,8 @@ button { -webkit-tap-highlight-color: transparent; }
     userAvatar: $("userAvatar"), authModal: $("authModalBackdrop"),
     authEmail: $("authEmail"), authPassword: $("authPassword"),
     authSubmit: $("authSubmitBtn"), authSwitch: $("authSwitchBtn"),
-    authTitle: $("authTitle"), authDesc: $("authDesc")
+    sidebar: $("sidebar"), menuToggle: $("menuToggleBtn"),
+    clearChatBtn: $("clearChatBtn"), clearInputBtn: $("clearInputBtn")
   };
 
   let conversations = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -731,13 +757,24 @@ button { -webkit-tap-highlight-color: transparent; }
       chat.messages.push({ role: "assistant", content: "⚠️ " + e.message });
       renderMessages();
     } finally {
-      // تسريح الأزرار فوراً مهما كانت النتيجة
       setBusy(false);
       if (elements.prompt) elements.prompt.focus();
     }
   }
 
-  // Handle Image Upload
+  // Event Listeners
+  elements.menuToggle.addEventListener("click", () => elements.sidebar.classList.toggle("open"));
+  elements.clearInputBtn.addEventListener("click", () => { elements.prompt.value = ""; elements.prompt.focus(); });
+  elements.clearChatBtn.addEventListener("click", () => {
+    if (confirm("Voulez-vous effacer cette discussion ?")) {
+      conversations = conversations.filter(c => c.id !== activeId);
+      activeId = conversations[0]?.id || null;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+      renderMessages();
+      showToast("Discussion effacée.");
+    }
+  });
+
   elements.imageButton.addEventListener("click", () => elements.imageInput.click());
   elements.imageInput.addEventListener("change", e => {
     const file = e.target.files[0];
@@ -760,16 +797,6 @@ button { -webkit-tap-highlight-color: transparent; }
 
   elements.send.addEventListener("click", sendMessage);
   elements.prompt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-
-  // PWA Logic
-  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; });
-  elements.headerInstallBtn.addEventListener("click", () => {
-    if (installPrompt) { installPrompt.prompt(); }
-    else if (/iPhone|iPad/.test(navigator.userAgent)) { elements.iosModal.classList.add("visible"); }
-    else { showToast("Installation non disponible."); }
-  });
-
-  if (elements.closeIosModalBtn) elements.closeIosModalBtn.addEventListener("click", () => elements.iosModal.classList.remove("visible"));
 
   updateUIForAuth();
   renderMessages();
