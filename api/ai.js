@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         'X-Title': 'ASSTRA AI'
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+        model: 'google/gemini-2.5-flash', // Model stable w dima ykhedem 100% m3a Vision
         max_tokens: 1500,
         messages: [
           {
